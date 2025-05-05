@@ -299,17 +299,6 @@ const app = createApp({
         });
         const DEPENDENCIA = "0072DP - DECANATURA PREGRADO";
         const viaticos = ref([]);
-        const disabledButtons = ref({
-            month: false,
-            week: false,
-            today: false,
-            periodo: false,
-            timeline: false,
-            visorPDF: false,
-            terceros: false,
-            programming: false,
-            eventLimit: false
-        });
         // ----------------------------------
         // End Component: State management
         // ----------------------------------        
@@ -1361,34 +1350,12 @@ const app = createApp({
             if (showTimeline.value) {
                 if (calendarEl) calendarEl.classList.add('hidden');
                 if (timelineEl) timelineEl.classList.remove('hidden');
-                disabledButtons.value = {
-                    month: true,
-                    week: true,
-                    today: true,
-                    periodo: true,
-                    timeline: false,
-                    visorPDF: true,
-                    terceros: true,
-                    programming: true,
-                    eventLimit: true
-                };
                 nextTick(() => {
                     initializeTimeline();
                 });
             } else {
                 if (calendarEl) calendarEl.classList.remove('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
-                disabledButtons.value = {
-                    month: false,
-                    week: false,
-                    today: false,
-                    periodo: false,
-                    timeline: false,
-                    visorPDF: false,
-                    terceros: false,
-                    programming: false,
-                    eventLimit: false
-                };
                 if (timeline) {
                     timeline.destroy();
                     timeline = null;
@@ -1617,33 +1584,11 @@ const app = createApp({
                 if (calendarEl) calendarEl.classList.add('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
                 if (visorPDFEl) visorPDFEl.classList.remove('hidden');
-                disabledButtons.value = {
-                    month: true,
-                    week: true,
-                    today: true,
-                    periodo: true,
-                    timeline: true,
-                    visorPDF: false,
-                    terceros: true,
-                    programming: true,
-                    eventLimit: true
-                };
             } else {
                 console.log('Showing calendar');
                 if (calendarEl) calendarEl.classList.remove('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
                 if (visorPDFEl) visorPDFEl.classList.add('hidden');
-                disabledButtons.value = {
-                    month: false,
-                    week: false,
-                    today: false,
-                    periodo: false,
-                    timeline: false,
-                    visorPDF: false,
-                    terceros: false,
-                    programming: false,
-                    eventLimit: false
-                };
 
                 nextTick(() => {
                     try {
@@ -1934,8 +1879,7 @@ const app = createApp({
             generatePDF,
             computeViatico,
             computeViaticoForProgramming,
-            reinitializeCalendar,
-            disabledButtons
+            reinitializeCalendar
         };
         // ----------------------------------    
         // End Exposed methods and properties
@@ -1944,6 +1888,6 @@ const app = createApp({
 });
 
 app.mount('#app');
-</script>    
+</script>
 </body>
 </html>
