@@ -1370,105 +1370,89 @@ const app = createApp({
         // Component: Programming Management
         // ----------------------------------
         const computeViaticoForProgramming = () => {
-	    if (!terceros.value.length || !cities.value.length) {
-	        console.warn('Terceros or cities not loaded. Cannot compute viáticos.');
-	        viaticos.value = [];
-	        return;
-	    }
-	
-	    if (!programmingRange.value.start || !programmingRange.value.end) {
-	        const today = new Date();
-	        const start = new Date(today.getFullYear(), today.getMonth(), 1);
-	        const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-	        programmingRange.value.start = start.toISOString().split('T')[0];
-	        programmingRange.value.end = end.toISOString().split('T')[0];
-	    }
-	
-	    const startDate = new Date(programmingRange.value.start);
-	    const endDate = new Date(programmingRange.value.end);
-	    const filteredEvents = events.value.filter(event => {
-	        const eventStart = new Date(event.startDate);
-	        return eventStart >= startDate && eventStart <= endDate;
-	    });
-	
-	    viaticos.value = filteredEvents
-	        .map(event => createViaticoObject(event, terceros.value, cities.value))
-	        .filter(viatico => viatico !== null);
-	
-	    if (!viaticos.value.length) {
-	        console.warn('No viáticos generated for the selected date range.');
-	    }
-	};
-
-        const openProgrammingModal = () => {
-            if (showTimeline.value || showVisorPDF.value) return;
-            showProgrammingModal.value = true;
-            programmingEventsJson.value = null;
-            computeViaticoForProgramming();
-            nextTick(() => {
-                if (programmingDateRangePicker.value) {
-                    programmingFlatpickrInstance = flatpickr(programmingDateRangePicker.value, {
-                        mode: 'range',
-                        dateFormat: 'Y-m-d',
-                        locale: 'es',
-                        defaultDate: [programmingRange.value.start, programmingRange.value.end],
-                        onChange: (selectedDates) => {
-                            if (selectedDates.length === 2) {
-                                programmingRange.value.start = selectedDates[0].toISOString().split('T')[0];
-                                programmingRange.value.end = selectedDates[1].toISOString().split('T')[0];
-                                computeViaticoForProgramming();
-                            }
-                        }
-                    });
-                }
-            });
-            updateButtonStates();
-        };
-
-        const closeProgrammingModal = () => {
-            showProgrammingModal.value = false;
-            programmingRange.value = { start: '', end: '' };
-            programmingEventsJson.value = null;
-            if (programmingFlatpickrInstance) {
-                programmingFlatpickrInstance.destroy();
-                programmingFlatpickrInstance = null;
+            if (!terceros.value.length || !cities.value.length) {
+                console.warn('Terceros or cities not loaded. Cannot compute viáticos.');
+                viaticos.value = [];
+                return;
             }
-            updateButtonStates();
+
+            if (!programmingRange.value.start || !programmingRange.value.end) {
+                const today = new Date();
+                const start = new Date(today.getFullYear(), today.getMonth(), 1);
+                const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                programmingRange.value.start = start.toISOString().split('T')[0];
+                programmingRange.value.end = end.toISOString().split('T')[0];
+            }
+
+            const startDate = new Date(programmingRange.value.start);
+            const endDate = new Date(programmingRange.value.end);
+            const filteredEvents = events.value.filter(event => {
+                const eventStart = new Date(event.startDate);
+                return eventStart >= startDate && eventStart <= endDate && event.terceroId && event.destino;
+            });
+
+            const newViaticos = filteredEvents
+                .map(event => createViaticoObject(event, terceros.value, cities.value))
+                .filter(viatico => viatico !== null);
+
+            // Remove duplicates based on terceroId and startDate
+            viaticos.value = newViaticos.filter((viatico, index, self) =>
+                index === self.findIndex(v =>
+                    v.tercero.numeroDocumentoTercero === viatico.tercero.numeroDocumentoTercero &&
+                    v.event.startDate === viatico.event.startDate
+                )
+            );
+
+            // Force reactivity update
+            viaticos.value = [...viaticos.value];
+
+            console.debug('Computed viáticos:', viaticos.value);
+            if (!viaticos.value.length) {
+                console.warn('No viáticos generated for the selected date range.');
+            }
         };
 
         const generateProgrammingJson = () => {
-	    if (!terceros.value.length || !cities.value.length) {
-	        alert('Error: Terceros o ciudades no están cargados.');
-	        return;
-	    }
-	
-	    if (!programmingRange.value.start || !programmingRange.value.end) {
-	        alert('Por favor, selecciona un rango de fechas.');
-	        return;
-	    }
-	
-	    const startDate = new Date(programmingRange.value.start);
-	    const endDate = new Date(programmingRange.value.end);
-	    const filteredEvents = events.value.filter(event => {
-	        const eventStart = new Date(event.startDate);
-	        return eventStart >= startDate && eventStart <= endDate;
-	    });
-	
-	    computeViaticoForProgramming(); // Ensure viaticos is updated first
-	
-	    const eventsWithViatico = filteredEvents.map(event => ({
-	        ...event,
-	        viatico: createViaticoObject(event, terceros.value, cities.value)
-	    }));
-	
-	    programmingEventsJson.value = JSON.stringify(eventsWithViatico, null, 2);
-	
-	    if (!showVisorPDF.value) {
-	        toggleVisorPDF();
-	    }
-	    showProgrammingModal.value = false;
-	    alert('Programación generada exitosamente.');
-	};
+            if (!terceros.value.length || !cities.value.length) {
+                alert('Error: Terceros o ciudades no están cargados.');
+                return;
+            }
+
+            if (!programmingRange.value.start || !programmingRange.value.end) {
+                alert('Por favor, selecciona un rango de fechas.');
+                return;
+            }
+
+            const startDate = new Date(programmingRange.value.start);
+            const endDate = new Date(programmingRange.value.end);
+            const filteredEvents = events.value.filter(event => {
+                const eventStart = new Date(event.startDate);
+                return eventStart >= startDate && eventStart <= endDate && event.terceroId && event.destino;
+            });
+
+            computeViaticoForProgramming(); // Update viaticos first
+
+            const eventsWithViatico = filteredEvents.map(event => ({
+                ...event,
+                viatico: createViaticoObject(event, terceros.value, cities.value)
+            }));
+
+            programmingEventsJson.value = JSON.stringify(eventsWithViatico, null, 2);
+            console.debug('Generated programming JSON with viáticos:', eventsWithViatico);
+
+            // Force re-render of Visor PDF
+            nextTick(() => {
+                if (showVisorPDF.value) {
+                    toggleVisorPDF(); // Briefly toggle off
+                    nextTick(() => toggleVisorPDF()); // Toggle back on
+                } else {
+                    toggleVisorPDF();
+                }
+                debugViaticos(); // Debug viaticos after rendering
+            });
+
+            showProgrammingModal.value = false;
+        };
         // ----------------------------------
         // End Component: Programming Management
         // ----------------------------------
@@ -1979,6 +1963,25 @@ const app = createApp({
         // ----------------------------------
         // Component: Visor PDF Management
         // ----------------------------------
+        const debugViaticos = () => {
+            console.debug('Visor PDF viaticos:', viaticos.value);
+            console.debug('Number of viaticos:', viaticos.value.length);
+            viaticos.value.forEach((viatico, index) => {
+                console.debug(`Viatico ${index}:`, {
+                    tercero: viatico.tercero.nombreTercero,
+                    startDate: viatico.event.startDate,
+                    endDate: viatico.event.endDate,
+                    destino: viatico.event.ciudadDestino
+                });
+                const element = document.getElementById(`pf1-${index}`);
+                if (!element) {
+                    console.warn(`Element pf1-${index} not found in DOM`);
+                } else {
+                    console.debug(`Element pf1-${index} found`);
+                }
+            });
+        };
+
         const toggleVisorPDF = () => {
             showVisorPDF.value = !showVisorPDF.value;
             showTimeline.value = false;
@@ -1995,6 +1998,7 @@ const app = createApp({
                     timeline.destroy();
                     timeline = null;
                 }
+                nextTick(() => debugViaticos()); // Debug viaticos on render
             } else {
                 if (calendarEl) calendarEl.classList.remove('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
@@ -2013,78 +2017,70 @@ const app = createApp({
         };
 
         const generatePDF = async () => {
-	    if (viaticos.value.length === 0) {
-	        alert('No hay viáticos para generar el PDF.');
-	        return;
-	    }
-	
-	    if (typeof window.html2canvas !== 'function') {
-	        console.error('html2canvas is not loaded.');
-	        alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-	        return;
-	    }
-	
-	    const { jsPDF } = window.jspdf;
-	    const doc = new jsPDF({
-	        orientation: 'portrait',
-	        unit: 'px',
-	        format: 'a4'
-	    });
-	
-	    let hasValidPages = false;
-	    const loadingIndicator = document.querySelector('.loading-indicator');
-	    if (loadingIndicator) loadingIndicator.style.display = 'block';
-	
-	    for (let index = 0; index < viaticos.value.length; index++) {
-	        const pageElement = document.getElementById(`pf1-${index}`);
-	        if (!pageElement) {
-	            console.warn(`Page element pf1-${index} not found. Skipping.`);
-	            continue;
-	        }
-	
-	        try {
-	            const originalDisplay = pageElement.style.display;
-	            pageElement.style.display = 'block';
-	
-	            const canvas = await window.html2canvas(pageElement, {
-	                scale: 2,
-	                useCORS: true,
-	                logging: false, // Disable logging for production
-	                width: pageElement.offsetWidth,
-	                height: pageElement.offsetHeight,
-	                windowWidth: pageElement.scrollWidth,
-	                windowHeight: pageElement.scrollHeight
-	            });
-	
-	            pageElement.style.display = originalDisplay;
-	
-	            const imgData = canvas.toDataURL('image/png');
-	            const imgProps = doc.getImageProperties(imgData);
-	            const pdfWidth = doc.internal.pageSize.getWidth();
-	            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-	
-	            if (index > 0 && hasValidPages) {
-	                doc.addPage();
-	            }
-	
-	            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-	            hasValidPages = true;
-	        } catch (error) {
-	            console.error(`Error generating page ${index + 1}:`, error);
-	            alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
-	        }
-	    }
-	
-	    if (loadingIndicator) loadingIndicator.style.display = 'none';
-	
-	    if (hasValidPages) {
-	        const dateStr = new Date().toISOString().split('T')[0];
-	        const rangeStr = `${programmingRange.value.start || dateStr}_${programmingRange.value.end || dateStr}`;
-	        doc.save(`comision_servicios_${rangeStr}.pdf`);
-	    } else {
-	        alert('No se generaron páginas válidas para el PDF.');
-	    }
-	};
+            if (viaticos.value.length === 0) {
+                alert('No hay viáticos para generar el PDF.');
+                return;
+            }
+
+            if (typeof window.html2canvas !== 'function') {
+                console.error('html2canvas is not loaded.');
+                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: 'a4'
+            });
+
+            let hasValidPages = false;
+
+            for (let index = 0; index < viaticos.value.length; index++) {
+                const pageElement = document.getElementById(`pf1-${index}`);
+                if (!pageElement) {
+                    console.warn(`Page element pf1-${index} not found. Skipping.`);
+                    continue;
+                }
+
+                try {
+                    const originalDisplay = pageElement.style.display;
+                    pageElement.style.display = 'block';
+
+                    const canvas = await window.html2canvas(pageElement, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: true,
+                        width: pageElement.offsetWidth,
+                        height: pageElement.offsetHeight
+                    });
+
+                    pageElement.style.display = originalDisplay;
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                    if (index > 0 && hasValidPages) {
+                        doc.addPage();
+                    }
+
+                    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    hasValidPages = true;
+                } catch (error) {
+                    console.error(`Error generating page ${index + 1}:`, error);
+                    alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
+                }
+            }
+
+            if (hasValidPages) {
+                doc.save(`comision_servicios_${new Date().toISOString().split('T')[0]}.pdf`);
+            } else {
+                alert('No se generaron páginas válidas para el PDF.');
+            }
+        };
         // ----------------------------------
         // End Component: Visor PDF Management
         // ----------------------------------
@@ -2093,19 +2089,9 @@ const app = createApp({
         // Component: Lifecycle Hooks
         // ----------------------------------
         onMounted(async () => {
-            try {
-	        await loadTerceros();
-	        await loadCities();
-	    } catch (error) {
-	        console.error('Error loading terceros or cities:', error);
-	        alert('Error al cargar datos iniciales. Algunas funcionalidades pueden no estar disponibles.');
-	    }
-	
-	    const calendarEl = document.getElementById('calendar');
-	    if (!calendarEl) {
-	        console.error('Calendar element not found');
-	        return;
-	    }
+            await loadTerceros();
+            await loadCities();
+            const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'es',
                 initialView: currentView.value,
@@ -2179,30 +2165,23 @@ const app = createApp({
         });
 
         onUnmounted(() => {
-	    console.debug('Cleaning up resources in onUnmounted');
-	    if (calendarApi.value) {
-	        calendarApi.value.destroy();
-	        calendarApi.value = null;
-	        console.debug('Calendar destroyed');
-	    }
-	    if (timeline) {
-	        timeline.destroy();
-	        timeline = null;
-	        console.debug('Timeline destroyed');
-	    }
-	    if (flatpickrInstance) {
-	        flatpickrInstance.destroy();
-	        flatpickrInstance = null;
-	        console.debug('Flatpickr instance destroyed');
-	    }
-	    if (programmingFlatpickrInstance) {
-	        programmingFlatpickrInstance.destroy();
-	        programmingFlatpickrInstance = null;
-	        console.debug('Programming flatpickr instance destroyed');
-	    }
-	    // Remove any global event listeners if added
-	    window.removeEventListener('resize', () => {});
-	});
+            if (calendarApi.value) {
+                calendarApi.value.destroy();
+                calendarApi.value = null;
+            }
+            if (timeline) {
+                timeline.destroy();
+                timeline = null;
+            }
+            if (flatpickrInstance) {
+                flatpickrInstance.destroy();
+                flatpickrInstance = null;
+            }
+            if (programmingFlatpickrInstance) {
+                programmingFlatpickrInstance.destroy();
+                programmingFlatpickrInstance = null;
+            }
+        });
         // ----------------------------------
         // End Component: Lifecycle Hooks
         // ----------------------------------
@@ -2302,7 +2281,8 @@ const app = createApp({
             computeViatico,
             computeViaticoForProgramming,
             reinitializeCalendar,
-            disabledButtons
+            disabledButtons,
+            debugViaticos
         };
         // ----------------------------------
         // End Exposed methods and properties
