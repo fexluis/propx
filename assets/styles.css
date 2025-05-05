@@ -151,6 +151,21 @@ body {
 /* ---------------------------------- */
 /* Component: Custom Select Styles */
 /* ---------------------------------- */
+
+button:disabled,
+	button.disabled {
+	    background-color: #d1d5db;
+	    color: #6b7280;
+	    opacity: 0.7;
+	    cursor: not-allowed;
+	    border-color: #d1d5db;
+	}
+	button:disabled:hover,
+	button.disabled:hover {
+	    background-color: #d1d5db;
+	    color: #6b7280;
+	}
+
 .custom-select {
   position: relative;
   width: 100%;
