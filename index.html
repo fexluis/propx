@@ -514,6 +514,9 @@ const app = createApp({
         };
 
         const setView = (view) => {
+            if (showVisorPDF.value) {
+                toggleVisorPDF();
+            }
             if (!calendarApi.value || showTimeline.value) return;
             currentView.value = view;
             calendarApi.value.changeView(view);
@@ -1525,11 +1528,11 @@ const app = createApp({
             }
             closeTimelineModal();
         };
-	// ----------------------------------
+        // ----------------------------------
         // End Component: Timeline Management
         // ----------------------------------
 
-	// ----------------------------------
+        // ----------------------------------
         // Component: toggleVisorPDF
         // ----------------------------------
         const toggleVisorPDF = () => {
@@ -1569,102 +1572,71 @@ const app = createApp({
             }
         };
 
-        const toggleVisorPDF = () => {
-            showVisorPDF.value = !showVisorPDF.value;
-            showTimeline.value = false;
+        const generatePDF = async () => {
+            if (viaticos.value.length === 0) {
+                alert('No hay viáticos para generar el PDF.');
+                return;
+            }
 
-            const calendarEl = document.getElementById('calendar');
-            const timelineEl = document.getElementById('timeline');
-            const visorPDFEl = document.getElementById('visorPDF');
+            if (typeof window.html2canvas !== 'function') {
+                console.error('html2canvas is not loaded. Please ensure the html2canvas library is included.');
+                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+                return;
+            }
 
-            if (showVisorPDF.value) {
-                // Hide calendar and timeline, show PDF viewer
-                if (calendarEl) calendarEl.style.display = 'none';
-                if (timelineEl) timelineEl.style.display = 'none';
-                if (visorPDFEl) visorPDFEl.style.display = 'block';
-                // Destroy calendar to ensure fresh state when shown again
-                if (calendarApi.value) {
-                    calendarApi.value.destroy();
-                    calendarApi.value = null;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: 'a4'
+            });
+
+            let hasValidPages = false;
+
+            for (let index = 0; index < viaticos.value.length; index++) {
+                const pageElement = document.getElementById(`pf1-${index}`);
+                if (!pageElement) {
+                    console.warn(`Page element pf1-${index} not found. Skipping.`);
+                    continue;
                 }
+
+                try {
+                    const originalDisplay = pageElement.style.display;
+                    pageElement.style.display = 'block';
+
+                    const canvas = await window.html2canvas(pageElement, {
+                        scale: 2,
+                        useCORS: true, // Enable CORS for cross-origin resources
+                        logging: true, // Enable logging for debugging
+                        width: pageElement.offsetWidth,
+                        height: pageElement.offsetHeight
+                    });
+
+                    pageElement.style.display = originalDisplay;
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                    if (index > 0 && hasValidPages) {
+                        doc.addPage();
+                    }
+
+                    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    hasValidPages = true;
+                } catch (error) {
+                    console.error(`Error generating page ${index + 1}:`, error);
+                    alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
+                }
+            }
+
+            if (hasValidPages) {
+                doc.save(`comision_servicios_${new Date().toISOString().split('T')[0]}.pdf`);
             } else {
-                // Show calendar, hide PDF viewer and timeline
-                if (calendarEl) calendarEl.style.display = 'block';
-                if (timelineEl) timelineEl.style.display = 'none';
-                if (visorPDFEl) visorPDFEl.style.display = 'none';
-                
-                // Reinitialize calendar to ensure proper rendering
-                nextTick(() => {
-                    reinitializeCalendar();
-                });
+                alert('No se generaron páginas válidas para el PDF.');
             }
         };
-
-        const generatePDF = async () => {
-			if (viaticos.value.length === 0) {
-				alert('No hay viáticos para generar el PDF.');
-				return;
-			}
-
-			if (typeof window.html2canvas !== 'function') {
-				console.error('html2canvas is not loaded. Please ensure the html2canvas library is included.');
-				alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-				return;
-			}
-
-			const { jsPDF } = window.jspdf;
-			const doc = new jsPDF({
-				orientation: 'portrait',
-				unit: 'px',
-				format: 'a4'
-			});
-
-			let hasValidPages = false;
-
-			for (let index = 0; index < viaticos.value.length; index++) {
-				const pageElement = document.getElementById(`pf1-${index}`);
-				if (!pageElement) {
-					console.warn(`Page element pf1-${index} not found. Skipping.`);
-					continue;
-				}
-
-				try {
-					const originalDisplay = pageElement.style.display;
-					pageElement.style.display = 'block';
-
-					const canvas = await window.html2canvas(pageElement, {
-						scale: 2,
-						useCORS: true, // Enable CORS for cross-origin resources
-						logging: true, // Enable logging for debugging
-						width: pageElement.offsetWidth,
-						height: pageElement.offsetHeight
-					});
-
-					pageElement.style.display = originalDisplay;
-
-					const imgData = canvas.toDataURL('image/png');
-					const imgProps = doc.getImageProperties(imgData);
-					const pdfWidth = doc.internal.pageSize.getWidth();
-					const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-					if (index > 0 && hasValidPages) {
-						doc.addPage();
-					}
-
-					doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-					hasValidPages = true;
-				} catch (error) {
-					console.error(`Error generating page ${index + 1}:`, error);
-					alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
-				}
-			}
-
-			if (hasValidPages) {
-				doc.save(`comision_servicios_${new Date().toISOString().split('T')[0]}.pdf`);
-			} else {
-				alert('No se generaron páginas válidas para el PDF.');
-			}
-		};
         // ----------------------------------
         // End Component: toggleVisorPDF
         // ----------------------------------
@@ -1769,7 +1741,7 @@ const app = createApp({
         // End Component: Lifecycle Hooks
         // ----------------------------------
 
-        // ----------------------------------	
+        // ----------------------------------    
         // Exposed methods and properties
         // ----------------------------------
         return {
@@ -1865,7 +1837,7 @@ const app = createApp({
             computeViaticoForProgramming,
             reinitializeCalendar
         };
-        // ----------------------------------	
+        // ----------------------------------    
         // End Exposed methods and properties
         // ----------------------------------
     }
