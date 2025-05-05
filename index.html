@@ -1034,20 +1034,25 @@ const app = createApp({
         // Component: Programming Management
         // ----------------------------------
         const computeViaticoForProgramming = () => {
-            if (!programmingRange.value.start || !programmingRange.value.end) {
-                const today = new Date();
-                const start = new Date(today.getYear(), today.getMonth(), 1);
-                const end = new Date(today.getYear(), today.getMonth() + 1, 0);
-                programmingRange.value.start = start.toISOString().split('T')[0];
-                programmingRange.value.end = end.toISOString().split('T')[0];
-            }
-            const startDate = new Date(programmingRange.value.start);
-            const endDate = new Date(programmingRange.value.end);
-            const filteredEvents = events.value.filter(event => {
-                const eventStart = new Date(event.startDate);
-                return eventStart >= startDate && eventStart <= endDate;
-            });
-        };
+	    if (!programmingRange.value.start || !programmingRange.value.end) {
+	        const today = new Date();
+	        const start = new Date(today.getFullYear(), today.getMonth(), 1); // Use getFullYear instead of getYear
+	        const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+	        programmingRange.value.start = start.toISOString().split('T')[0];
+	        programmingRange.value.end = end.toISOString().split('T')[0];
+	    }
+	    const startDate = new Date(programmingRange.value.start);
+	    const endDate = new Date(programmingRange.value.end);
+	    const filteredEvents = events.value.filter(event => {
+	        const eventStart = new Date(event.startDate);
+	        return eventStart >= startDate && eventStart <= endDate;
+	    });
+	
+	    // Compute viáticos for filtered events
+	    viaticos.value = filteredEvents
+	        .map(event => createViaticoObject(event, terceros.value, cities.value))
+	        .filter(viatico => viatico !== null);
+	};
 
         const openProgrammingModal = () => {
             if (showTimeline.value || showVisorPDF.value) return;
