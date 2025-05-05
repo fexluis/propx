@@ -552,31 +552,41 @@ const app = createApp({
         };
 
         const renderEvents = () => {
-            if (!calendarApi.value || showTimeline.value) return;
-            calendarApi.value.getEvents().forEach(event => event.remove());
-            events.value.forEach(event => {
-                calendarApi.value.addEvent({
-                    id: event.id,
-                    title: event.title,
-                    start: event.startDate,
-                    end: event.endDate,
-                    allDay: true,
-                    backgroundColor: event.color || '#3b82f6',
-                    borderColor: darkenColor(event.color, 20),
-                    extendedProps: { 
-                        description: event.description || '',
-                        terceroId: event.terceroId || '',
-                        viatica: event.viatica || false,
-                        transporte: event.transporte || '',
-                        origen: event.origen || '',
-                        destino: event.destino || '',
-                        rutaAdicional: event.rutaAdicional || ''
-                    }
+            console.log('renderEvents called, calendarApi:', !!calendarApi.value, 'showTimeline:', showTimeline.value, 'event count:', events.value.length);
+            if (!calendarApi.value || showTimeline.value) {
+                console.log('renderEvents aborted: calendarApi missing or timeline active');
+                return;
+            }
+            try {
+                calendarApi.value.getEvents().forEach(event => event.remove());
+                events.value.forEach(event => {
+                    calendarApi.value.addEvent({
+                        id: event.id,
+                        title: event.title,
+                        start: event.startDate,
+                        end: event.endDate,
+                        allDay: true,
+                        backgroundColor: event.color || '#3b82f6',
+                        borderColor: darkenColor(event.color, 20),
+                        extendedProps: { 
+                            description: event.description || '',
+                            terceroId: event.terceroId || '',
+                            viatica: event.viatica || false,
+                            transporte: event.transporte || '',
+                            origen: event.origen || '',
+                            destino: event.destino || '',
+                            rutaAdicional: event.rutaAdicional || ''
+                        }
+                    });
                 });
-            });
+                console.log('renderEvents completed, events added to calendar');
+            } catch (error) {
+                console.error('Error in renderEvents:', error);
+            }
         };
 
         const reinitializeCalendar = () => {
+            console.log('reinitializeCalendar called');
             try {
                 const calendarEl = document.getElementById('calendar');
                 if (!calendarEl) {
@@ -585,9 +595,9 @@ const app = createApp({
                 }
 
                 // Ensure calendar element is visible
-                calendarEl.style.display = 'block';
-                calendarEl.style.visibility = 'visible';
+                calendarEl.classList.remove('hidden');
                 calendarEl.style.height = '100%';
+                console.log('Calendar element visibility set, hidden class:', calendarEl.classList.contains('hidden'), 'display:', calendarEl.style.display, 'height:', calendarEl.style.height);
 
                 // Store current state
                 const savedView = currentView.value;
@@ -595,11 +605,13 @@ const app = createApp({
 
                 // Destroy existing calendar if it exists
                 if (calendarApi.value) {
+                    console.log('Destroying existing calendar');
                     calendarApi.value.destroy();
                     calendarApi.value = null;
                 }
 
                 // Reinitialize calendar
+                console.log('Initializing new FullCalendar instance with view:', savedView);
                 const calendar = new FullCalendar.Calendar(calendarEl, {
                     locale: 'es',
                     initialView: savedView,
@@ -666,6 +678,7 @@ const app = createApp({
                 });
 
                 calendarApi.value = calendar;
+                console.log('Rendering calendar');
                 calendar.render();
 
                 // Restore events
@@ -674,6 +687,7 @@ const app = createApp({
 
                 // Force update size after rendering
                 calendar.updateSize();
+                console.log('Calendar size updated');
 
                 // Debounced resize handler
                 const debounce = (func, wait) => {
@@ -701,7 +715,7 @@ const app = createApp({
                     window.removeEventListener('resize', handleResize);
                 });
 
-                console.log('Calendar reinitialized successfully with view:', savedView);
+                console.log('reinitializeCalendar completed successfully with view:', savedView);
             } catch (error) {
                 console.error('Error reinitializing calendar:', error);
             }
@@ -1555,6 +1569,7 @@ const app = createApp({
         // Component: toggleVisorPDF
         // ----------------------------------
         const toggleVisorPDF = () => {
+            console.log('toggleVisorPDF called, current showVisorPDF:', showVisorPDF.value, 'currentView:', currentView.value);
             showVisorPDF.value = !showVisorPDF.value;
             showTimeline.value = false;
 
@@ -1562,50 +1577,40 @@ const app = createApp({
             const timelineEl = document.getElementById('timeline');
             const visorPDFEl = document.getElementById('visorPDF');
 
-            if (showVisorPDF.value) {
-                // Hide calendar and timeline, show PDF viewer
-                if (calendarEl) {
-                    calendarEl.style.display = 'none';
-                    calendarEl.style.visibility = 'hidden';
-                }
-                if (timelineEl) timelineEl.style.display = 'none';
-                if (visorPDFEl) {
-                    visorPDFEl.style.display = 'block';
-                    visorPDFEl.style.visibility = 'visible';
-                }
-                // Destroy calendar to ensure fresh state when shown again
-                if (calendarApi.value) {
-                    calendarApi.value.destroy();
-                    calendarApi.value = null;
-                }
-            } else {
-                // Show calendar, hide PDF viewer and timeline
-                if (calendarEl) {
-                    calendarEl.style.display = 'block';
-                    calendarEl.style.visibility = 'visible';
-                    calendarEl.style.height = '100%';
-                }
-                if (timelineEl) timelineEl.style.display = 'none';
-                if (visorPDFEl) {
-                    visorPDFEl.style.display = 'none';
-                    visorPDFEl.style.visibility = 'hidden';
-                }
+            console.log('Element status - calendar:', !!calendarEl, 'timeline:', !!timelineEl, 'visorPDF:', !!visorPDFEl);
 
-                // Reinitialize calendar and ensure it renders in the correct view
+            if (showVisorPDF.value) {
+                console.log('Showing PDF viewer');
+                if (calendarEl) calendarEl.classList.add('hidden');
+                if (timelineEl) timelineEl.classList.add('hidden');
+                if (visorPDFEl) visorPDFEl.classList.remove('hidden');
+            } else {
+                console.log('Showing calendar');
+                if (calendarEl) calendarEl.classList.remove('hidden');
+                if (timelineEl) timelineEl.classList.add('hidden');
+                if (visorPDFEl) visorPDFEl.classList.add('hidden');
+
                 nextTick(() => {
                     try {
-                        reinitializeCalendar();
-                        if (calendarApi.value) {
+                        if (!calendarEl) {
+                            console.error('Calendar element not found during toggleVisorPDF');
+                            return;
+                        }
+                        console.log('Calendar element found, hidden class:', calendarEl.classList.contains('hidden'), 'style:', calendarEl.style.cssText);
+
+                        if (!calendarApi.value) {
+                            console.log('Calendar API not initialized, calling reinitializeCalendar');
+                            reinitializeCalendar();
+                        } else {
+                            console.log('Calendar API exists, rendering with view:', currentView.value);
                             calendarApi.value.changeView(currentView.value);
                             calendarApi.value.render();
                             renderEvents();
                             calendarApi.value.updateSize();
-                            console.log('Calendar rendered after toggleVisorPDF with view:', currentView.value);
-                        } else {
-                            console.error('Calendar API not initialized after reinitializeCalendar');
                         }
+                        console.log('toggleVisorPDF completed, calendar should be visible');
                     } catch (error) {
-                        console.error('Error rendering calendar after toggleVisorPDF:', error);
+                        console.error('Error in toggleVisorPDF:', error);
                     }
                 });
             }
