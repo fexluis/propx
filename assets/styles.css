@@ -354,6 +354,10 @@ body {
   -webkit-transition: left 500ms;
   transition: left 500ms
 }
+.visorPDF-white {
+    --tw-text-opacity: 1;
+    color: white;
+}
 /* ---------------------------------- */
 /* End Component: PDF Viewer Styles */
 /* ---------------------------------- */
