@@ -14,7 +14,22 @@
     <link rel="stylesheet" href="assets/main.css"/>
 	<link rel="stylesheet" href="assets/styles.css"/>
     <style>
+	/* Style for disabled buttons */
+	button:disabled,
+	button.disabled {
+	    background-color: #d1d5db; /* Gray background for disabled state */
+	    color: #6b7280; /* Gray text for disabled state */
+	    opacity: 0.7; /* Slight transparency */
+	    cursor: not-allowed; /* Indicate non-interactable state */
+	    border-color: #d1d5db; /* Match border to background */
+	}
 	
+	/* Ensure hover state doesn’t override disabled styles */
+	button:disabled:hover,
+	button.disabled:hover {
+	    background-color: #d1d5db; /* Maintain disabled background */
+	    color: #6b7280; /* Maintain disabled text color */
+	}
     </style>
 </head>
 <body class="bg-gray-50">
