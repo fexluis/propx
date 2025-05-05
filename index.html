@@ -125,6 +125,175 @@
 		</div>
 	</div>
 	<!-- ---------------------------------- -->
+	<!-- Component: Event Modal -->
+	<!-- ---------------------------------- -->
+	<div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 modal">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+			<div class="p-6">
+				<div class="flex justify-between items-center mb-4">
+					<h3 class="text-lg font-semibold text-gray-900">
+						{{ currentEvent ? 'Editar Viático' : 'Nuevo Viático' }}
+					</h3>
+					<div class="flex items-center space-x-3">
+						<div class="flex items-center">
+							<label for="viatica" class="text-sm font-medium text-gray-700 mr-2">Viática</label>
+							<input type="checkbox" id="viatica" v-model="form.viatica" class="h-6 w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+						</div>
+						<button @click="closeModal" class="text-gray-400 hover:text-gray-500">
+							<i class="fas fa-times"></i>
+						</button>
+					</div>
+				</div>
+				<div v-if="error" class="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+					{{ error }}
+				</div>
+				<form @submit.prevent="saveEvent">
+					<div class="space-y-4">
+						<div>
+							<div class="relative">
+								<input
+									id="title"
+									v-model="searchQuery"
+									@focus="showOptions = true"
+									@blur="hideOptions"
+									@input="filterTerceros"
+									placeholder="Selecciona un tercero..."
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+								<div v-if="showOptions && filteredTerceros.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+									<div
+										v-for="tercero in filteredTerceros"
+										:key="tercero.id"
+										class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+										@mousedown="selectTercero(tercero)"
+									>
+										{{ tercero.nombreTercero }}
+									</div>
+								</div>
+								<div v-else-if="showOptions" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+									<div class="px-3 py-2 text-gray-500">No se encontraron resultados</div>
+								</div>
+							</div>
+							<input type="hidden" v-model="form.terceroId" name="terceroId" />
+						</div>
+						<div>
+							<label for="description" class="block text-sm font-medium text-gray-700">Descripción de la comisión de servicios o salida de campo</label>
+							<textarea
+								id="description"
+								v-model="form.description"
+								@input="handleDescriptionInput"
+								rows="3"
+								maxlength="120"
+								class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+							></textarea>
+						</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div class="relative">
+								<label for="origen" class="block text-sm font-medium text-gray-700">Origen</label>
+								<input
+									id="origen"
+									v-model="origenQuery"
+									@focus="showOrigenOptions = true"
+									@blur="hideOrigenOptions"
+									@input="filterOrigenCities"
+									placeholder="Selecciona una ciudad..."
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+								<div v-if="showOrigenOptions && filteredOrigenCities.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+									<div
+										v-for="city in filteredOrigenCities"
+										:key="city.id"
+										class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+										@mousedown="selectOrigenCity(city)"
+									>
+										{{ city.nombreCiudad }}
+									</div>
+								</div>
+								<div v-else-if="showOrigenOptions" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+									<div class="px-3 py-2 text-gray-500">No hay resultados</div>
+								</div>
+							</div>
+							<div class="relative">
+								<label for="destino" class="block text-sm font-medium text-gray-700">Destino</label>
+								<input
+									id="destino"
+									v-model="destinoQuery"
+									@focus="showDestinoOptions = true"
+									@blur="hideDestinoOptions"
+									@input="filterDestinoCities"
+									placeholder="Selecciona una ciudad..."
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+								<div v-if="showDestinoOptions && filteredDestinoCities.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+									<div
+										v-for="city in filteredDestinoCities"
+										:key="city.id"
+										class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+										@mousedown="selectDestinoCity(city)"
+									>
+										{{ city.nombreCiudad }}
+									</div>
+								</div>
+								<div v-else-if="showDestinoOptions" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+									<div class="px-3 py-2 text-gray-500">No hay resultados</div>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label for="dateRange" class="block text-sm font-medium text-gray-700">Rango de Fechas *</label>
+								<input type="text" id="dateRange" ref="dateRangePicker" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+							</div>
+							<div>
+								<label for="rutaAdicional" class="block text-sm font-medium text-gray-700">Ruta Adicional</label>
+								<input
+									type="text"
+									id="rutaAdicional"
+									v-model="form.rutaAdicional"
+									@input="handleRutaAdicionalInput"
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+							</div>
+						</div>
+						<div class="flex items-end gap-4">
+							<div class="flex-1">
+								<label for="transporte" class="block text-sm font-medium text-gray-700">Transporte</label>
+								<input
+									type="text"
+									id="transporte"
+									v-model="form.transporte"
+									@input="handleTransporteInput"
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+							</div>
+							<div class="flex-1">
+								<label for="color" class="block text-sm font-medium text-gray-700">Color</label>
+								<select id="color" v-model="form.color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+									<option value="#3b82f6">Azul</option>
+									<option value="#10b981">Verde</option>
+									<option value="#8b5cf6">Morado</option>
+									<option value="#f59e0b">Amarillo</option>
+									<option value="#ef4444">Rojo</option>
+								</select>
+							</div>
+							<div class="flex space-x-3 items-end">
+								<button v-if="currentEvent" type="button" @click="deleteEvent" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+									Eliminar
+								</button>
+								<button type="button" @click="closeModal" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+									Cancelar
+								</button>
+								<button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+									Guardar
+								</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!-- ---------------------------------- -->
 	<!-- End Component: Event Modal -->
 	<!-- ---------------------------------- -->
 		
@@ -133,7 +302,174 @@
         <!-- ---------------------------------- -->
         <div id="visorPDF" class="flex-1" v-show="showVisorPDF">
             
-                           
+                <!-- Generar PDF Button -->
+		<button @click="generatePDF" class="generate-pdf-button">Generar PDF</button>
+                <!-- Added hidden #outline element to satisfy theViewer -->
+                <div id="outline" style="display: none;"></div>
+                <div v-if="viaticos.length === 0" class="text-center text-gray-500 py-4">
+                    No hay viáticos disponibles para mostrar. Por favor, genera la programación primero.
+                </div>
+
+		<div v-for="(viatico, index) in viaticos" :key="index" :id="'pf1-' + index" class="pf w0 h0" :data-page-no="index + 1">
+		    <div class="pc pc1 w0 h0">
+		        <img class="bi x0 y0 w1 h1" alt="" src="assets/bg1.png?v=1" />
+		        <div class="c x1 y1 w2 h2">
+		            <div class="t m0 x2 h3 y2 ff1 fs0 fc0 sc0 ls0 ws0">FORMATO DE AUTORIZACIÓN, SOLICITUD DE TRÁMITE Y AUTOLIQUIDACIÓN DE COMISIONES</div>
+		            <div class="t m0 x2 h3 y3 ff1 fs0 fc0 sc0 ls0 ws0">DE SERVICIOS Y SALIDAS DE CAMPO AL INTERIOR DEL PAÍS DE CATEDRÁTICOS, DOCENTES</div>
+		            <div class="t m0 x3 h3 y4 ff1 fs0 fc0 sc0 ls0 ws0">CAPACITADORES E INVESTIGADORES</div>
+		        </div>
+		        <div class="c x4 y5 w3 h4"><div class="t m0 x5 h3 y6 ff1 fs0 fc0 sc0 ls0 ws0">CODIGO: GF-FO-023</div></div>
+		        <div class="c x4 y7 w3 h5"><div class="t m0 x5 h3 y8 ff1 fs0 fc0 sc0 ls0 ws0">VERSION: 04</div></div>
+		        <div class="c x4 y1 w3 h4"><div class="t m0 x5 h3 y9 ff1 fs0 fc0 sc0 ls0 ws0">FECHA: 03/04/2025</div></div>
+		        <div class="c x0 ya w4 h6"><div class="t m1 x6 h7 yb ff2 fs1 fc1 sc1 ls0 ws0">D i l i g e n c i e o s e l e c c i o n e ú n i c a m e n t e y a c o m p l e t i t u d l o s c a m p o s e n g r i s</div></div>
+		        <div class="c x0 yc w5 h8"><div class="t m0 x5 h3 yd ff1 fs0 fc2 sc2 ls0 ws0">Dependencia solicitante:</div></div>
+		        <div class="c x7 yc w6 h8"><div class="t m0 x8 h3 yd ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.dependencia || '' }}</div></div>
+		        <div class="c x9 yc w7 h8"><div class="t m0 xa h3 yd ff1 fs0 fc2 sc2 ls0 ws0">FECHA DE AUTOLIQUIDACIÓN</div></div>
+		        <div class="c x4 yc w3 h8"><div class="t m0 xb h3 yd ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.currentDate || '' }}</div></div>
+		        <div class="c x0 ye w4 h9"><div class="t m0 x5 h3 yf ff1 fs0 fc2 sc2 ls0 ws0">1. DATOS DEL CATEDRÁTICO / INVESTIGADOR / DOCENTE CAPACITADOR</div></div>
+		        <div class="c x0 y10 w5 ha"><div class="t m0 x5 h3 y11 ff1 fs0 fc2 sc2 ls0 ws0">Nombre completo</div></div>
+		        <div class="c x7 y10 w8 ha"><div class="t m0 xc h3 y11 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.nombreTercero || '' }}</div></div>
+		        <div class="c xd y10 w9 ha"><div class="t m0 xe h3 y11 ff1 fs0 fc2 sc2 ls0 ws0">Fecha de Nacimiento (dd/mm/aaaa)</div></div>
+		        <div class="c xf y10 wa ha"><div class="t m0 x10 h3 y11 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.nacimiento || '' }}</div></div>
+		        <div class="c x0 y12 w5 hb"><div class="t m0 x5 h3 y13 ff1 fs0 fc2 sc2 ls0 ws0">C.C. No.</div></div>
+		        <div class="c x7 y12 wb hb"><div class="t m0 xc h3 y13 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.numeroDocumentoTercero || '' }}</div></div>
+		        <div class="c x11 y12 wc hb"><div class="t m0 x5 h3 y13 ff1 fs0 fc2 sc2 ls0 ws0">Correo electrónico</div></div>
+		        <div class="c x9 y12 wd hb"><div class="t m0 x3 hc y13 ff3 fs0 fc2 sc3 ls0 ws0">{{ viatico?.tercero?.correo || '' }}</div></div>
+		        <div class="c x0 y14 w5 hd">
+		            <div class="t m0 x5 h3 y15 ff1 fs0 fc2 sc2 ls0 ws0">Teléfono de contacto y/o</div>
+		            <div class="t m0 x5 h3 y16 ff1 fs0 fc2 sc2 ls0 ws0">Celular</div>
+		        </div>
+		        <div class="c x7 y14 wb hd"><div class="t m0 x12 h3 y17 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.telefono || '' }}</div></div>
+		        <div class="c x11 y14 wc hd"><div class="t m0 x5 h3 y17 ff1 fs0 fc2 sc2 ls0 ws0">Entidad Bancaria</div></div>
+		        <div class="c x9 y14 wd hd"><div class="t m0 x13 he y17 ff4 fs0 fc2 sc3 ls0 ws0">{{ viatico?.tercero?.entidadBancaria || '' }}</div></div>
+		        <div class="c x0 y18 w5 hb"><div class="t m0 x5 h3 y19 ff1 fs0 fc2 sc2 ls0 ws0">Rol ESAP:</div></div>
+		        <div class="c x7 y18 w6 hb"><div class="t m0 x14 h3 y19 ff1 fs0 fc2 sc2 ls0 ws0">Docente catedrático - Capacitadores</div></div>
+		        <div class="c x9 y18 we hb"><div class="t m0 x15 h3 y19 ff1 fs0 fc2 sc2 ls0 ws0">TIPO DE CUENTA:</div></div>
+		        <div class="c xd y18 wf hb"><div class="t m0 x6 h3 y19 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.tipoCuenta || '' }}</div></div>
+		        <div class="c x0 y1a w5 hf">
+		            <div class="t m0 x5 h3 y1b ff1 fs0 fc2 sc2 ls0 ws0">Categoría docente</div>
+		            <div class="t m0 x5 h3 y1c ff1 fs0 fc2 sc2 ls0 ws0">catedrático o investigador</div>
+		        </div>
+		        <div class="c x7 y1a w6 hf"><div class="t m0 x7 h3 y1d ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.tipoTercero || '' }}</div></div>
+		        <div class="c x9 y1a we hf"><div class="t m0 x10 h3 y1d ff1 fs0 fc2 sc2 ls0 ws0">No. DE CUENTA:</div></div>
+		        <div class="c xd y1a wf hf"><div class="t m0 x14 h3 y1d ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.tercero?.cuentaBancaria || '' }}</div></div>
+		        <div class="c x0 y1e w4 h10"><div class="t m0 x5 h3 y1f ff1 fs0 fc2 sc2 ls0 ws0">2. DATOS DE LA COMISIÓN DE SERVICIOS O SALIDA DE CAMPO</div></div>
+		        <div class="c x0 y20 w5 h11">
+		            <div class="t m0 x16 h3 y21 ff1 fs0 fc2 sc2 ls0 ws0">Duración de la comisión de</div>
+		            <div class="t m0 x16 h3 y22 ff1 fs0 fc2 sc2 ls0 ws0">servicios o salida de campo</div>
+		            <div class="t m0 x17 h3 y23 ff1 fs0 fc2 sc2 ls0 ws0">en días:</div>
+		        </div>
+		        <div class="c x7 y20 w10 h11"><div class="t m0 x18 h3 y24 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.duracion || '' }}</div></div>
+		        <div class="c x1 y25 w11 h12"><div class="t m0 x19 h3 y26 ff1 fs0 fc2 sc2 ls0 ws0">Fecha de inicio</div></div>
+		        <div class="c x11 y25 wc h12"><div class="t m0 x17 hc y27 ff3 fs0 fc2 sc3 ls0 ws0">{{ viatico?.event?.startDate || '' }}</div></div>
+		        <div class="c x9 y25 we h12">
+		            <div class="t m0 x1a h3 y26 ff1 fs0 fc2 sc2 ls0 ws0">Hora de vuelo ida:</div>
+		            <div class="t m0 xb h3 y28 ff1 fs0 fc2 sc2 ls0 ws0">(estimada</div>
+		        </div>
+		        <div class="c xd y25 w12 h12"><div class="t m0 xa hc y27 ff3 fs0 fc2 sc3 ls0 ws0">7:00</div></div>
+		        <div class="c x4 y25 w3 h12"><div class="t m0 x1b h3 y27 ff1 fs0 fc2 sc2 ls0 ws0">Itinerario detallado:</div></div>
+		        <div class="c x1 y20 w11 h13"><div class="t m0 x1c h3 y29 ff1 fs0 fc2 sc2 ls0 ws0">Fecha de finalización</div></div>
+		        <div class="c x11 y20 wc h13"><div class="t m0 x1d hc y29 ff3 fs0 fc2 sc3 ls0 ws0">{{ viatico?.event?.endDate || '' }}</div></div>
+		        <div class="c x9 y20 we h13">
+		            <div class="t m0 x0 h3 y2a ff1 fs0 fc2 sc2 ls0 ws0">Hora de vuelo regreso:</div>
+		            <div class="t m0 x1e h3 y2b ff1 fs0 fc2 sc2 ls0 ws0">(estimada)</div>
+		        </div>
+		        <div class="c xd y20 w12 h13"><div class="t m0 x19 hc y29 ff3 fs0 fc2 sc3 ls0 ws0">16:00</div></div>
+		        <div class="c x4 y20 w3 h13"><div class="t m0 x0 h14 y2c ff3 fs2 fc3 sc3 ls0 ws0">{{ viatico?.event?.itinerario || '' }}</div></div>
+		        <div class="c x0 y2d w5 h8"><div class="t m0 x5 h3 y2e ff1 fs0 fc2 sc2 ls0 ws0">Departamento</div></div>
+		        <div class="c x7 y2d w6 h8"><div class="t m0 x1f h3 y2e ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.event?.ciudadDestinoDepartamento || '' }}</div></div>
+		        <div class="c x9 y2d w7 h8"><div class="t m0 x20 h3 y2e ff1 fs0 fc2 sc2 ls0 ws0">Requiere tiquetes aéreos</div></div>
+		        <div class="c x4 y2d w3 h8"><div class="t m0 x8 h3 y2e ff1 fs0 fc2 sc2 ls0 ws0">NO</div></div>
+		        <div class="c x0 y2f w5 h15">
+		            <div class="t m0 x5 h3 y30 ff1 fs0 fc2 sc2 ls0 ws0">Municipio / Isla / área no</div>
+		            <div class="t m0 x5 h3 y31 ff1 fs0 fc2 sc2 ls0 ws0">municipalizada</div>
+		        </div>
+		        <div class="c x7 y2f w6 h15"><div class="t m0 x6 h3 y32 ff1 fs0 fc2 sc2 ls0 ws0">{{ viatico?.event?.ciudadDestino || '' }}</div></div>
+		        <div class="c x9 y2f w7 h15"><div class="t m0 x21 h3 y32 ff1 fs0 fc2 sc2 ls0 ws0">Aeropuerto Destino</div></div>
+		        <div class="c x4 y2f w3 h15"><div class="t m0 xa h3 y32 ff1 fs0 fc2 sc2 ls0 ws0">VALLE DEL CAUCA (Palmira)</div></div>
+		        <div class="c x0 y33 w5 h16"><div class="t m0 x5 h3 y34 ff1 fs0 fc2 sc2 ls0 ws0">Objeto</div></div>
+		        <div class="c x7 y33 w13 h16"><div class="t m0 x21 hc y34 ff3 fs0 fc2 sc3 ls0 ws0">{{ viatico?.event?.description || '' }}</div></div>
+		        <div class="c x0 y35 w4 h8"><div class="t m0 x5 h3 y36 ff1 fs0 fc2 sc2 ls0 ws0">3. LIQUIDACIÓN DE LA COMISIÓN DE SERVICIOS O SALIDA DE CAMPO</div></div>
+		        <div class="c x0 y37 w14 h17"><div class="t m0 x22 h3 y38 ff1 fs0 fc2 sc2 ls0 ws0">Descripción del día</div></div>
+		        <div class="c x11 y37 wc h17"><div class="t m0 x18 h3 y38 ff1 fs0 fc2 sc2 ls0 ws0">No. de Días</div></div>
+		        <div class="c x9 y37 w7 h17"><div class="t m0 x23 h3 y38 ff1 fs0 fc2 sc2 ls0 ws0">Viáticos Diario</div></div>
+		        <div class="c x4 y37 w3 h17"><div class="t m0 x24 h3 y38 ff1 fs0 fc2 sc2 ls0 ws0">Total</div></div>
+		        <div class="c x0 y39 w14 h17"><div class="t m0 x25 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">Pernoctados</div></div>
+		        <div class="c x11 y39 wc h17"><div class="t m0 x21 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">1</div></div>
+		        <div class="c x9 y39 w7 h17">
+		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>293,886</div>
+		        </div>
+		        <div class="c x4 y39 w3 h17">
+		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>293,886</div>
+		        </div>
+		        <div class="c x0 y3b w14 h17"><div class="t m0 x26 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
+		        <div class="c x11 y3b wc h17"><div class="t m0 x21 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">1</div></div>
+		        <div class="c x9 y3b w7 h17">
+		            <div class="t m0 x5 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>146,943</div>
+		        </div>
+		        <div class="c x4 y3b w3 h17">
+		            <div class="t m0 x5 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>146,943</div>
+		        </div>
+		        <div class="c x0 y3d w15 h17"><div class="t m0 x27 h3 y3e ff1 fs0 fc2 sc2 ls0 ws0">Total Viáticos o auxilio económico de desplazamiento</div></div>
+		        <div class="c x4 y3d w3 h17">
+		            <div class="t m0 x5 h3 y3e ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _1"> </span>440,829</div>
+		        </div>
+		        <div class="c x0 y3f w4 h17"><div class="t m0 x5 h3 y40 ff1 fs0 fc2 sc2 ls0 ws0">4. LIQUIDACIÓN DE GASTOS DE TRANSPORTE Y/O AUXILIOS ECONÓMICOS DE DESPLAZAMIENTO</div></div>
+		        <div class="c x0 y41 w14 h17"><div class="t m0 x28 h3 y42 ff1 fs0 fc2 sc2 ls0 ws0">Descripción</div></div>
+		        <div class="c x11 y41 w16 h17"><div class="t m0 x29 h3 y42 ff1 fs0 fc2 sc2 ls0 ws0">Total</div></div>
+		        <div class="c x0 y43 w14 h18">
+		            <div class="t m0 x10 h3 y44 ff1 fs0 fc2 sc2 ls0 ws0">Total gastos de transporte / auxilios económicos de desplazamientos</div>
+		            <div class="t m0 x2a h3 y45 ff1 fs0 fc2 sc2 ls0 ws0">terminales aéreos</div>
+		        </div>
+		        <div class="c x11 y43 w16 h18">
+		            <div class="t m0 x5 h3 y46 ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _2"> </span>-</div>
+		        </div>
+		        <div class="c x0 y47 w14 h18"><div class="t m0 x16 h3 y48 ff1 fs0 fc2 sc2 ls0 ws0">Transporte y desplazamiento por vía terrestre, marítimo, fluvial y/o ferroviario</div></div>
+		        <div class="c x11 y47 w16 h18">
+		            <div class="t m0 x5 h3 y48 ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _3"> </span>{{ viatico?.event?.transporte || '' }}</div>
+		        </div>
+		        <div class="c x0 y49 w14 h18">
+		            <div class="t m0 x1c h3 y4a ff1 fs0 fc2 sc2 ls0 ws0">TOTAL GASTOS DE TRANSPORTE Y/O AUXILIOS ECONÓMICOS DE</div>
+		            <div class="t m0 x1f h3 y4b ff1 fs0 fc2 sc2 ls0 ws0">DESPLAZAMIENTO</div>
+		        </div>
+		        <div class="c x11 y49 w16 h18">
+		            <div class="t m0 x5 h3 y4c ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _4"> </span>470,429</div>
+		        </div>
+		        <div class="c x0 y4d w4 h19"><div class="t m0 x5 h3 y4e ff1 fs0 fc2 sc2 ls0 ws0">5. INFORMACIÓN FINANCIERA DE LA COMISIÓN DE SERVICIOS O SALIDA DE CAMPO</div></div>
+		        <div class="c x0 y4f w4 h1a">
+		            <div class="t m0 x5 hc y50 ff3 fs0 fc2 sc3 ls0 ws0">
+		                El pago de la presente comisión de servicios / autorización de desplazamiento, se hará con cargo a 0072DP - DECANATURA PREGRADO, del Rubro C-0503-1000-16-20203K0503014-02, según
+		            </div>
+		            <div class="t m0 x5 hc y51 ff3 fs0 fc2 sc3 ls0 ws0">Certificado de Disponibilidad Presupuestal No. 4325 del 04/02/2025</div>
+		        </div>
+		        <div class="c x0 y52 w5 h1b">
+		            <div class="t m0 x5 hc y53 ff3 fs0 fc2 sc3 ls0 ws0">_________________________</div>
+		            <div class="t m0 x5 hc y54 ff3 fs0 fc2 sc3 ls0 ws0">________________________</div>
+		            <div class="t m0 x5 hc y55 ff3 fs0 fc2 sc3 ls0 ws0">_________________________</div>
+		            <div class="t m0 x5 hc y56 ff3 fs0 fc2 sc3 ls0 ws0">_________________________</div>
+		            <div class="t m0 x5 hc y57 ff3 fs0 fc2 sc3 ls0 ws0">____</div>
+		            <div class="t m0 x5 hc y58 ff3 fs0 fc2 sc3 ls0 ws0">Firma Jefe de Dependencia</div>
+		            <div class="t m0 x5 hc y59 ff3 fs0 fc2 sc3 ls0 ws0">Firma Gerente de Proyecto</div>
+		        </div>
+		        <div class="c x7 y5a wb h1c"><div class="t m0 x18 hc y5b ff3 fs0 fc2 sc3 ls0 ws0">Carmen Marlene Rojas Gallego</div></div>
+		        <div class="c xd y5a w9 h1c"><div class="t m0 x0 hc y5b ff3 fs0 fc2 sc3 ls0 ws0">Yeimi Viviana Agudo Rodriguez</div></div>
+		        <div class="c x0 y5c w17 h1d"><div class="t m0 x2b hc y5d ff3 fs0 fc2 sc3 ls0 ws0">Coordinadora Académica</div></div>
+		        <div class="c x9 y5c wd h1d"><div class="t m0 x2c hc y5d ff3 fs0 fc2 sc3 ls0 ws0">Directora Territorial</div></div>
+		        <div class="c x0 y5e w15 h1e"><div class="t m0 x5 h1f y5f ff3 fs3 fc2 sc3 ls0 ws0">Elaboró: Carmen Marlene Rojas, Profesional Especializado</div></div>
+		        <div class="c x4 y60 w3 h20">
+		            <div class="t m0 x0 h3 y61 ff1 fs0 fc2 sc2 ls0 ws0">La información recolectada en este</div>
+		            <div class="t m0 xe h3 y62 ff1 fs0 fc2 sc2 ls0 ws0">documento es tratada bajo la política de</div>
+		            <div class="t m0 x2d h3 y63 ff1 fs0 fc2 sc2 ls0 ws0">Datos Personales de la ESAP en</div>
+		            <div class="t m0 x15 h3 y64 ff1 fs0 fc2 sc2 ls0 ws0">cumplimiento a la Ley1581de2012</div>
+		        </div>
+		        <div class="c x0 y65 w15 h21"><div class="t m0 x5 h1f y66 ff3 fs3 fc2 sc3 ls0 ws0">Revisó: Carmen Marlene Rojas, Profesional Especializado</div></div>
+		        <div class="c x0 y60 w15 h22"><div class="t m0 x5 h1f y67 ff3 fs3 fc2 sc3 ls0 ws0">Aprobó: Yeimi Viviana Agudo, Directora Territorial</div></div>
+		    </div>
+		    <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
+		</div>
+                
+                <div class="loading-indicator"></div>
+            
         </div>
         <!-- ---------------------------------- -->
         <!-- End Component: Visor PDF -->
