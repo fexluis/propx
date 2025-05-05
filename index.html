@@ -577,115 +577,134 @@ const app = createApp({
         };
 
         const reinitializeCalendar = () => {
-            if (!calendarApi.value) return;
-            
-            // Store current state
-            const savedView = currentView.value;
-            const savedEvents = [...events.value];
-            const calendarEl = document.getElementById('calendar');
-            
-            // Destroy existing calendar
-            calendarApi.value.destroy();
-            calendarApi.value = null;
-            
-            // Reinitialize calendar
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                locale: 'es',
-                initialView: savedView,
-                headerToolbar: false,
-                firstDay: 1,
-                dayHeaderFormat: { weekday: 'long' },
-                height: '100%',
-                contentHeight: '100%',
-                eventClick: (info) => {
-                    editEvent(info);
-                },
-                dateClick: function(info) {
-                    openModal(info.dateStr);
-                },
-                eventDisplay: 'block',
-                eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-                eventDidMount: function(info) {
-                    if (info.event.allDay && info.event.start && info.event.end) {
-                        const start = info.event.start;
-                        const end = info.event.end;
-                        const duration = (end - start) / (1000 * 60 * 60 * 24);
-                        if (duration > 1) {
-                            info.el.style.borderLeftWidth = '4px';
-                            info.el.style.borderLeftStyle = 'solid';
-                            info.el.style.borderLeftColor = darkenColor(info.event.backgroundColor, 20);
-                        }
-                    }
-                },
-                dayHeaderContent: function(arg) {
-                    const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
-                    return { html: `<div>${dayName}</div>` };
-                },
-                views: {
-                    dayGridMonth: {
-                        dayMaxEventRows: limitEvents.value ? 4 : false,
-                        dayMaxEvents: limitEvents.value ? 4 : false,
-                        fixedWeekCount: false,
-                        aspectRatio: 1.5
-                    },
-                    dayGridWeek: {
-                        type: 'dayGrid',
-                        duration: { weeks: 1 },
-                        dayCount: 7,
-                        dayMaxEventRows: false,
-                        dayMaxEvents: false,
-                        titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
-                        dayHeaderContent: function(arg) {
-                            const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
-                            const dayNumber = arg.date.getDate();
-                            return {
-                                html: `
-                                    <div class="flex flex-col items-center">
-                                        <span class="fc-day-name">${dayName}</span>
-                                        <span class="fc-day-number">${dayNumber}</span>
-                                    </div>
-                                `
-                            };
-                        }
-                    }
-                },
-                datesSet: function() {
-                    updateTitle();
+            try {
+                const calendarEl = document.getElementById('calendar');
+                if (!calendarEl) {
+                    console.error('Calendar element not found');
+                    return;
                 }
-            });
-            
-            calendarApi.value = calendar;
-            calendar.render();
-            
-            // Restore events
-            events.value = savedEvents;
-            renderEvents();
-            
-            // Debounced resize handler
-            const debounce = (func, wait) => {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            };
-            
-            const handleResize = debounce(() => {
+
+                // Ensure calendar element is visible
+                calendarEl.style.display = 'block';
+                calendarEl.style.visibility = 'visible';
+                calendarEl.style.height = '100%';
+
+                // Store current state
+                const savedView = currentView.value;
+                const savedEvents = [...events.value];
+
+                // Destroy existing calendar if it exists
                 if (calendarApi.value) {
-                    calendarApi.value.updateSize();
+                    calendarApi.value.destroy();
+                    calendarApi.value = null;
                 }
-            }, 100);
-            
-            window.addEventListener('resize', handleResize);
-            
-            // Clean up resize listener on next toggle
-            nextTick(() => {
-                window.removeEventListener('resize', handleResize);
-            });
+
+                // Reinitialize calendar
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'es',
+                    initialView: savedView,
+                    headerToolbar: false,
+                    firstDay: 1,
+                    dayHeaderFormat: { weekday: 'long' },
+                    height: '100%',
+                    contentHeight: '100%',
+                    eventClick: (info) => {
+                        editEvent(info);
+                    },
+                    dateClick: function(info) {
+                        openModal(info.dateStr);
+                    },
+                    eventDisplay: 'block',
+                    eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+                    eventDidMount: function(info) {
+                        if (info.event.allDay && info.event.start && info.event.end) {
+                            const start = info.event.start;
+                            const end = info.event.end;
+                            const duration = (end - start) / (1000 * 60 * 60 * 24);
+                            if (duration > 1) {
+                                info.el.style.borderLeftWidth = '4px';
+                                info.el.style.borderLeftStyle = 'solid';
+                                info.el.style.borderLeftColor = darkenColor(info.event.backgroundColor, 20);
+                            }
+                        }
+                    },
+                    dayHeaderContent: function(arg) {
+                        const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
+                        return { html: `<div>${dayName}</div>` };
+                    },
+                    views: {
+                        dayGridMonth: {
+                            dayMaxEventRows: limitEvents.value ? 4 : false,
+                            dayMaxEvents: limitEvents.value ? 4 : false,
+                            fixedWeekCount: false,
+                            aspectRatio: 1.5
+                        },
+                        dayGridWeek: {
+                            type: 'dayGrid',
+                            duration: { weeks: 1 },
+                            dayCount: 7,
+                            dayMaxEventRows: false,
+                            dayMaxEvents: false,
+                            titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
+                            dayHeaderContent: function(arg) {
+                                const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
+                                const dayNumber = arg.date.getDate();
+                                return {
+                                    html: `
+                                        <div class="flex flex-col items-center">
+                                            <span class="fc-day-name">${dayName}</span>
+                                            <span class="fc-day-number">${dayNumber}</span>
+                                        </div>
+                                    `
+                                };
+                            }
+                        }
+                    },
+                    datesSet: function() {
+                        updateTitle();
+                    }
+                });
+
+                calendarApi.value = calendar;
+                calendar.render();
+
+                // Restore events
+                events.value = savedEvents;
+                renderEvents();
+
+                // Force update size after rendering
+                calendar.updateSize();
+
+                // Debounced resize handler
+                const debounce = (func, wait) => {
+                    let timeout;
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                    };
+                };
+
+                const handleResize = debounce(() => {
+                    if (calendarApi.value) {
+                        calendarApi.value.updateSize();
+                    }
+                }, 100);
+
+                window.addEventListener('resize', handleResize);
+
+                // Clean up resize listener on next toggle
+                nextTick(() => {
+                    window.removeEventListener('resize', handleResize);
+                });
+
+                console.log('Calendar reinitialized successfully with view:', savedView);
+            } catch (error) {
+                console.error('Error reinitializing calendar:', error);
+            }
         };
         // ----------------------------------
         // End Component: Calendar Management
@@ -962,8 +981,8 @@ const app = createApp({
         const computeViaticoForProgramming = () => {
             if (!programmingRange.value.start || !programmingRange.value.end) {
                 const today = new Date();
-                const start = new Date(today.getFullYear(), today.getMonth(), 1);
-                const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                const start = new Date(today.getYear(), today.getMonth(), 1);
+                const end = new Date(today.getYear(), today.getMonth() + 1, 0);
                 programmingRange.value.start = start.toISOString().split('T')[0];
                 programmingRange.value.end = end.toISOString().split('T')[0];
             }
@@ -1545,9 +1564,15 @@ const app = createApp({
 
             if (showVisorPDF.value) {
                 // Hide calendar and timeline, show PDF viewer
-                if (calendarEl) calendarEl.style.display = 'none';
+                if (calendarEl) {
+                    calendarEl.style.display = 'none';
+                    calendarEl.style.visibility = 'hidden';
+                }
                 if (timelineEl) timelineEl.style.display = 'none';
-                if (visorPDFEl) visorPDFEl.style.display = 'block';
+                if (visorPDFEl) {
+                    visorPDFEl.style.display = 'block';
+                    visorPDFEl.style.visibility = 'visible';
+                }
                 // Destroy calendar to ensure fresh state when shown again
                 if (calendarApi.value) {
                     calendarApi.value.destroy();
@@ -1555,18 +1580,32 @@ const app = createApp({
                 }
             } else {
                 // Show calendar, hide PDF viewer and timeline
-                if (calendarEl) calendarEl.style.display = 'block';
+                if (calendarEl) {
+                    calendarEl.style.display = 'block';
+                    calendarEl.style.visibility = 'visible';
+                    calendarEl.style.height = '100%';
+                }
                 if (timelineEl) timelineEl.style.display = 'none';
-                if (visorPDFEl) visorPDFEl.style.display = 'none';
-                
-                // Ensure monthly view and reinitialize calendar
-                currentView.value = 'dayGridMonth';
+                if (visorPDFEl) {
+                    visorPDFEl.style.display = 'none';
+                    visorPDFEl.style.visibility = 'hidden';
+                }
+
+                // Reinitialize calendar and ensure it renders in the correct view
                 nextTick(() => {
-                    reinitializeCalendar();
-                    if (calendarApi.value) {
-                        calendarApi.value.changeView('dayGridMonth');
-                        calendarApi.value.render();
-                        renderEvents();
+                    try {
+                        reinitializeCalendar();
+                        if (calendarApi.value) {
+                            calendarApi.value.changeView(currentView.value);
+                            calendarApi.value.render();
+                            renderEvents();
+                            calendarApi.value.updateSize();
+                            console.log('Calendar rendered after toggleVisorPDF with view:', currentView.value);
+                        } else {
+                            console.error('Calendar API not initialized after reinitializeCalendar');
+                        }
+                    } catch (error) {
+                        console.error('Error rendering calendar after toggleVisorPDF:', error);
                     }
                 });
             }
@@ -1606,8 +1645,8 @@ const app = createApp({
 
                     const canvas = await window.html2canvas(pageElement, {
                         scale: 2,
-                        useCORS: true, // Enable CORS for cross-origin resources
-                        logging: true, // Enable logging for debugging
+                        useCORS: true,
+                        logging: true,
                         width: pageElement.offsetWidth,
                         height: pageElement.offsetHeight
                     });
