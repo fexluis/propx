@@ -1333,7 +1333,7 @@ const app = createApp({
 
         const formatDateRange = (startDate, endDate) => {
             const start = new Date(startDate);
-            const end = new Date(endDate); // Fixed: Changed 'New' to 'new'
+            const end = new Date(endDate);
             return `${start.toLocaleDateString('es-ES')} - ${end.toLocaleDateString('es-ES')}`;
         };
 
