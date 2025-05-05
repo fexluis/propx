@@ -1048,8 +1048,8 @@ const app = createApp({
         const computeViaticoForProgramming = () => {
             if (!programmingRange.value.start || !programmingRange.value.end) {
                 const today = new Date();
-                const start = new Date(today.getYear(), today.getMonth(), 1);
-                const end = new Date(today.getYear(), today.getMonth() + 1, 0);
+                const start = new Date(today.getFullYear(), today.getMonth(), 1);
+                const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
                 programmingRange.value.start = start.toISOString().split('T')[0];
                 programmingRange.value.end = end.toISOString().split('T')[0];
             }
@@ -1060,7 +1060,9 @@ const app = createApp({
                 return eventStart >= startDate && eventStart <= endDate;
             });
 
-            vi-method();
+            viaticos.value = filteredEvents
+                .map(event => createViaticoObject(event, terceros.value, cities.value))
+                .filter(viatico => viatico !== null);
         };
 
         const openProgrammingModal = () => {
