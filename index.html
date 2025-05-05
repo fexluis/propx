@@ -20,79 +20,79 @@
 <body class="bg-gray-50">
     <div id="app" class="min-h-screen flex flex-col">
         <!-- ---------------------------------- -->
-        <!-- Component: Header -->
-        <!-- ---------------------------------- -->
-        <header class="bg-blue-600 text-white shadow-lg">
-            <div class="px-4 py-3">
-                <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
-                    <div class="flex items-center justify-between">
-                        <h1 class="text-xl md:text-2xl font-bold">Calendario Académico</h1>
-                        <div class="md:hidden">
-                            <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
-                                <i class="fas fa-calendar-alt"></i>
-                            </button>
-                            <button @click="setView('dayGridWeek')" :class="{'bg-blue-700': currentView === 'dayGridWeek'}" class="p-2 rounded-md">
-                                <i class="fas fa-calendar-week"></i>
-                            </button>
-                            <button @click="goToToday" class="p-2 rounded-md">
-                                <i class="fas fa-calendar-day"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between space-x-2">
-                        <div class="flex items-center space-x-2">
-                            <button @click="navigate('prev')" class="p-2 rounded-full hover:bg-blue-700">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <h2 id="calendar-title" class="text-base md:text-lg font-semibold">
-                                {{ getTitle() }}
-                            </h2>
-                            <button @click="navigate('next')" class="p-2 rounded-full hover:bg-blue-700">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        <div class="hidden md:flex space-x-2 ml-4">
-                            <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="px-3 py-1 rounded-md flex items-center">
-                                <i class="fas fa-calendar-alt mr-2"></i>
-                                <span>Mes</span>
-                            </button>
-                            <button @click="setView('dayGridWeek')" :class="{'bg-blue-700': currentView === 'dayGridWeek'}" class="px-3 py-1 rounded-md flex items-center">
-                                <i class="fas fa-calendar-week mr-2"></i>
-                                <span>Semana</span>
-                            </button>
-                            <button @click="goToToday" class="px-3 py-1 rounded-md flex items-center hover:bg-blue-700">
-                                <i class="fas fa-calendar-day mr-2"></i>
-                                <span>Hoy</span>
-                            </button>
-                            <button @click="openPeriodoModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
-                                <i class="fas fa-calendar mr-2"></i>
-                                <span>Periodo</span>
-                            </button>
-                            <button @click="toggleTimeline" :class="{'bg-blue-700': showTimeline}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
-                                <i class="fas fa-list-alt mr-2"></i>
-                                <span>Cronograma</span>
-                            </button>
-                            <button @click="toggleVisorPDF" :class="{'bg-blue-700': showVisorPDF}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
-                                <i class="fas fa-file-pdf mr-2"></i>
-                                <span>Visor PDF</span>
-                            </button>
-                            <button @click="openTercerosModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
-                                <i class="fas fa-users"></i>
-                            </button>
-                            <button @click="openProgrammingModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
-                                <i class="fas fa-list"></i>
-                            </button>
-                            <button @click="toggleEventLimit" :disabled="currentView !== 'dayGridMonth'" :class="{'bg-blue-700': limitEvents, 'bg-gray-400 cursor-not-allowed': currentView !== 'dayGridMonth'}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
-                                <i :class="limitEvents ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-        <!-- ---------------------------------- -->
-        <!-- End Component: Header -->
-        <!-- ---------------------------------- -->
+	<!-- Component: Header -->
+	<!-- ---------------------------------- -->
+	<header class="bg-blue-600 text-white shadow-lg">
+	    <div class="px-4 py-3">
+	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
+	            <div class="flex items-center justify-between">
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico</h1>
+	                <div class="md:hidden">
+	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
+	                        <i class="fas fa-calendar-alt"></i>
+	                    </button>
+	                    <button @click="setView('dayGridWeek')" :class="{'bg-blue-700': currentView === 'dayGridWeek'}" class="p-2 rounded-md">
+	                        <i class="fas fa-calendar-week"></i>
+	                    </button>
+	                    <button @click="goToToday" class="p-2 rounded-md">
+	                        <i class="fas fa-calendar-day"></i>
+	                    </button>
+	                </div>
+	            </div>
+	            <div class="flex items-center justify-between space-x-2">
+	                <div class="flex items-center space-x-2">
+	                    <button @click="navigate('prev')" class="p-2 rounded-full hover:bg-blue-700">
+	                        <i class="fas fa-chevron-left"></i>
+	                    </button>
+	                    <h2 id="calendar-title" class="text-base md:text-lg font-semibold">
+	                        {{ getTitle() }}
+	                    </h2>
+	                    <button @click="navigate('next')" class="p-2 rounded-full hover:bg-blue-700">
+	                        <i class="fas fa-chevron-right"></i>
+	                    </button>
+	                </div>
+	                <div class="hidden md:flex space-x-2 ml-4">
+	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-70': currentView === 'dayGridMonth'}" class="px-3 py-1 rounded-md flex items-center" :disabled="disabledButtons.month">
+	                        <i class="fas fa-calendar-alt mr-2"></i>
+	                        <span>Mes</span>
+	                    </button>
+	                    <button @click="setView('dayGridWeek')" :class="{'bg-blue-700': currentView === 'dayGridWeek'}" class="px-3 py-1 rounded-md flex items-center" :disabled="disabledButtons.week">
+	                        <i class="fas fa-calendar-week mr-2"></i>
+	                        <span>Semana</span>
+	                    </button>
+	                    <button @click="goToToday" class="px-3 py-1 rounded-md flex items-center hover:bg-blue-700" :disabled="disabledButtons.today">
+	                        <i class="fas fa-calendar-day mr-2"></i>
+	                        <span>Hoy</span>
+	                    </button>
+	                    <button @click="openPeriodoModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.periodo">
+	                        <i class="fas fa-calendar mr-2"></i>
+	                        <span>Periodo</span>
+	                    </button>
+	                    <button @click="toggleTimeline" :class="{'bg-blue-700': showTimeline}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.timeline">
+	                        <i class="fas fa-list-alt mr-2"></i>
+	                        <span>Cronograma</span>
+	                    </button>
+	                    <button @click="toggleVisorPDF" :class="{'bg-blue-700': showVisorPDF}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.visorPDF">
+	                        <i class="fas fa-file-pdf mr-2"></i>
+	                        <span>Visor PDF</span>
+	                    </button>
+	                    <button @click="openTercerosModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.terceros">
+	                        <i class="fas fa-users"></i>
+	                    </button>
+	                    <button @click="openProgrammingModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.programming">
+	                        <i class="fas fa-list"></i>
+	                    </button>
+	                    <button @click="toggleEventLimit" :disabled="currentView !== 'dayGridMonth' || disabledButtons.eventLimit" :class="{'bg-blue-700': limitEvents, 'bg-gray-400 cursor-not-allowed': currentView !== 'dayGridMonth'}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700">
+	                        <i :class="limitEvents ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+	                    </button>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</header>
+	<!-- ---------------------------------- -->
+	<!-- End Component: Header -->
+	<!-- ---------------------------------- -->
 
         <!-- ---------------------------------- -->
         <!-- Component: Calendar -->
@@ -299,6 +299,17 @@ const app = createApp({
         });
         const DEPENDENCIA = "0072DP - DECANATURA PREGRADO";
         const viaticos = ref([]);
+        const disabledButtons = ref({
+            month: false,
+            week: false,
+            today: false,
+            periodo: false,
+            timeline: false,
+            visorPDF: false,
+            terceros: false,
+            programming: false,
+            eventLimit: false
+        });
         // ----------------------------------
         // End Component: State management
         // ----------------------------------        
@@ -1350,12 +1361,34 @@ const app = createApp({
             if (showTimeline.value) {
                 if (calendarEl) calendarEl.classList.add('hidden');
                 if (timelineEl) timelineEl.classList.remove('hidden');
+                disabledButtons.value = {
+                    month: true,
+                    week: true,
+                    today: true,
+                    periodo: true,
+                    timeline: false,
+                    visorPDF: true,
+                    terceros: true,
+                    programming: true,
+                    eventLimit: true
+                };
                 nextTick(() => {
                     initializeTimeline();
                 });
             } else {
                 if (calendarEl) calendarEl.classList.remove('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
+                disabledButtons.value = {
+                    month: false,
+                    week: false,
+                    today: false,
+                    periodo: false,
+                    timeline: false,
+                    visorPDF: false,
+                    terceros: false,
+                    programming: false,
+                    eventLimit: false
+                };
                 if (timeline) {
                     timeline.destroy();
                     timeline = null;
@@ -1584,11 +1617,33 @@ const app = createApp({
                 if (calendarEl) calendarEl.classList.add('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
                 if (visorPDFEl) visorPDFEl.classList.remove('hidden');
+                disabledButtons.value = {
+                    month: true,
+                    week: true,
+                    today: true,
+                    periodo: true,
+                    timeline: true,
+                    visorPDF: false,
+                    terceros: true,
+                    programming: true,
+                    eventLimit: true
+                };
             } else {
                 console.log('Showing calendar');
                 if (calendarEl) calendarEl.classList.remove('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
                 if (visorPDFEl) visorPDFEl.classList.add('hidden');
+                disabledButtons.value = {
+                    month: false,
+                    week: false,
+                    today: false,
+                    periodo: false,
+                    timeline: false,
+                    visorPDF: false,
+                    terceros: false,
+                    programming: false,
+                    eventLimit: false
+                };
 
                 nextTick(() => {
                     try {
@@ -1879,7 +1934,8 @@ const app = createApp({
             generatePDF,
             computeViatico,
             computeViaticoForProgramming,
-            reinitializeCalendar
+            reinitializeCalendar,
+            disabledButtons
         };
         // ----------------------------------    
         // End Exposed methods and properties
@@ -1888,6 +1944,6 @@ const app = createApp({
 });
 
 app.mount('#app');
-</script>  
+</script>    
 </body>
 </html>
