@@ -1525,6 +1525,49 @@ const app = createApp({
             }
             closeTimelineModal();
         };
+	// ----------------------------------
+        // End Component: Timeline Management
+        // ----------------------------------
+
+	// ----------------------------------
+        // Component: toggleVisorPDF
+        // ----------------------------------
+        const toggleVisorPDF = () => {
+            showVisorPDF.value = !showVisorPDF.value;
+            showTimeline.value = false;
+
+            const calendarEl = document.getElementById('calendar');
+            const timelineEl = document.getElementById('timeline');
+            const visorPDFEl = document.getElementById('visorPDF');
+
+            if (showVisorPDF.value) {
+                // Hide calendar and timeline, show PDF viewer
+                if (calendarEl) calendarEl.style.display = 'none';
+                if (timelineEl) timelineEl.style.display = 'none';
+                if (visorPDFEl) visorPDFEl.style.display = 'block';
+                // Destroy calendar to ensure fresh state when shown again
+                if (calendarApi.value) {
+                    calendarApi.value.destroy();
+                    calendarApi.value = null;
+                }
+            } else {
+                // Show calendar, hide PDF viewer and timeline
+                if (calendarEl) calendarEl.style.display = 'block';
+                if (timelineEl) timelineEl.style.display = 'none';
+                if (visorPDFEl) visorPDFEl.style.display = 'none';
+                
+                // Ensure monthly view and reinitialize calendar
+                currentView.value = 'dayGridMonth';
+                nextTick(() => {
+                    reinitializeCalendar();
+                    if (calendarApi.value) {
+                        calendarApi.value.changeView('dayGridMonth');
+                        calendarApi.value.render();
+                        renderEvents();
+                    }
+                });
+            }
+        };
 
         const toggleVisorPDF = () => {
             showVisorPDF.value = !showVisorPDF.value;
@@ -1623,7 +1666,7 @@ const app = createApp({
 			}
 		};
         // ----------------------------------
-        // End Component: Timeline Management
+        // End Component: toggleVisorPDF
         // ----------------------------------
       
         // ----------------------------------
