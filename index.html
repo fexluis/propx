@@ -26,7 +26,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico pf1-v5</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico pf1-v6</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -691,9 +691,6 @@ const app = createApp({
                     eventLimit: currentView.value !== 'dayGridMonth'
                 };
             }
-            // Note: To apply a 'disabled' class, update the template to include
-            // :class="{ disabled: disabledButtons.month }" (or similar) for each button.
-            // Example for month button: <button :class="{ disabled: disabledButtons.month }" :disabled="disabledButtons.month">Month</button>
         };
         // ----------------------------------
         // End Component: Button State Management
@@ -1328,7 +1325,7 @@ const app = createApp({
                     ciudadDestinoDepartamento: destinoCity.departamento
                 },
                 cost: calculateCost(duration, destinoCity.categoria),
-                eventId: eventData.id // Added to ensure uniqueness
+                eventId: eventData.id
             };
         };
         // ----------------------------------
@@ -1381,6 +1378,7 @@ const app = createApp({
             }
 
             if (!programmingRange.value.start || !programmingRange.value.end) {
+                console.warn('No date range selected. Setting default range.');
                 const today = new Date();
                 const start = new Date(today.getFullYear(), today.getMonth(), 1);
                 const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -1388,18 +1386,39 @@ const app = createApp({
                 programmingRange.value.end = end.toISOString().split('T')[0];
             }
 
+            console.debug('Programming date range:', {
+                start: programmingRange.value.start,
+                end: programmingRange.value.end
+            });
+
             const startDate = new Date(programmingRange.value.start);
             const endDate = new Date(programmingRange.value.end);
             const filteredEvents = events.value.filter(event => {
                 const eventStart = new Date(event.startDate);
-                return eventStart >= startDate && eventStart <= endDate && event.terceroId && event.destino;
+                const isWithinRange = eventStart >= startDate && eventStart <= endDate;
+                const hasRequiredFields = event.terceroId && event.destino;
+                console.debug('Event filter:', {
+                    eventId: event.id,
+                    startDate: event.startDate,
+                    isWithinRange,
+                    hasTercero: !!event.terceroId,
+                    hasDestino: !!event.destino
+                });
+                return isWithinRange && hasRequiredFields;
             });
+
+            console.debug('Filtered events:', filteredEvents.map(e => ({
+                id: e.id,
+                startDate: e.startDate,
+                terceroId: e.terceroId,
+                destino: e.destino
+            })));
 
             const newViaticos = filteredEvents
                 .map(event => createViaticoObject(event, terceros.value, cities.value))
                 .filter(viatico => viatico !== null);
 
-            // Remove duplicates based on eventId to ensure each event generates a viatico
+            // Remove duplicates based on eventId
             viaticos.value = newViaticos.filter((viatico, index, self) =>
                 index === self.findIndex(v => v.eventId === viatico.eventId)
             );
@@ -1407,7 +1426,13 @@ const app = createApp({
             // Force reactivity update
             viaticos.value = [...viaticos.value];
 
-            console.debug('Computed viáticos:', viaticos.value);
+            console.debug('Computed viáticos:', viaticos.value.map(v => ({
+                eventId: v.eventId,
+                tercero: v.tercero.nombreTercero,
+                startDate: v.event.startDate,
+                destino: v.event.ciudadDestino
+            })));
+
             if (!viaticos.value.length) {
                 console.warn('No viáticos generated for the selected date range.');
             }
@@ -1424,6 +1449,14 @@ const app = createApp({
                 return;
             }
 
+            console.debug('Starting generateProgrammingJson with viaticos:', viaticos.value.length);
+
+            // Compute viáticos
+            computeViaticoForProgramming();
+
+            // Log viaticos JSON for debugging
+            console.log('Viaticos JSON:', JSON.stringify(viaticos.value, null, 2));
+
             const startDate = new Date(programmingRange.value.start);
             const endDate = new Date(programmingRange.value.end);
             const filteredEvents = events.value.filter(event => {
@@ -1431,14 +1464,9 @@ const app = createApp({
                 return eventStart >= startDate && eventStart <= endDate && event.terceroId && event.destino;
             });
 
-            computeViaticoForProgramming(); // Update viaticos first
-
-            // Log viaticos JSON for debugging
-            console.log('Viaticos JSON:', JSON.stringify(viaticos.value, null, 2));
-
             const eventsWithViatico = filteredEvents.map(event => ({
                 ...event,
-                viatico: createViaticoObject(event, terceros.value, cities.value)
+                viatico: viaticos.value.find(v => v.eventId === event.id) || null
             }));
 
             programmingEventsJson.value = JSON.stringify(eventsWithViatico, null, 2);
@@ -2046,11 +2074,7 @@ const app = createApp({
                 if (calendarEl) calendarEl.classList.add('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
                 if (visorPDFEl) visorPDFEl.classList.remove('hidden');
-                if (timeline) {
-                    timeline.destroy();
-                    timeline = null;
-                }
-                nextTick(() => debugViaticos()); // Debug viaticos on render
+                nextTick(() => debugViaticos());
             } else {
                 if (calendarEl) calendarEl.classList.remove('hidden');
                 if (timelineEl) timelineEl.classList.add('hidden');
