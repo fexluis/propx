@@ -24,7 +24,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v5</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v6</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -836,10 +836,12 @@ const app = createApp({
             return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
         };
 
-        // Function to format numbers with commas and decimals (e.g., 622,374.00)
+        // Function to format numbers with dots for thousands and comma for decimals (e.g., 622.374,00)
         const formatCurrency = (value) => {
             const rounded = REDONDEAR(value, 2); // Ensure 2 decimal places
-            return rounded.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); // Add commas for thousands
+            const [integerPart, decimalPart = '00'] = rounded.toFixed(2).split('.');
+            const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Add dots for thousands
+            return `${formattedInteger},${decimalPart.padStart(2, '0')}`; // Use comma for decimals
         };
 
         // Compute viático details for each viatico object (used in template)
@@ -856,9 +858,25 @@ const app = createApp({
             // Calculate total days (inclusive of start and end dates)
             const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
-            // For now, we'll use the provided viaticoDiaPernoctados=2 and compute viaticoDiaNoPernoctados
-            const viaticoDiaPernoctados = 2; // As specified
-            const viaticoDiaNoPernoctados = totalDays - viaticoDiaPernoctados;
+            // Apply logic for viaticoDiaPernoctados and viaticoDiaNoPernoctados based on totalDays
+            let viaticoDiaPernoctados, viaticoDiaNoPernoctados;
+            if (totalDays === 1) {
+                viaticoDiaPernoctados = 0;
+                viaticoDiaNoPernoctados = 1;
+            } else if (totalDays === 2) {
+                viaticoDiaPernoctados = 1;
+                viaticoDiaNoPernoctados = 1;
+            } else if (totalDays === 3) {
+                viaticoDiaPernoctados = 2;
+                viaticoDiaNoPernoctados = 1;
+            } else if (totalDays >= 4) {
+                viaticoDiaPernoctados = totalDays - 1; // For 4 days: 3 pernoctados
+                viaticoDiaNoPernoctados = 1;
+            } else {
+                // Fallback for unexpected cases
+                viaticoDiaPernoctados = totalDays > 1 ? totalDays - 1 : 0;
+                viaticoDiaNoPernoctados = totalDays > 1 ? 1 : totalDays;
+            }
 
             // Calculate valorViaticosDiario using the function
             const viaticoValorDiario = valorViaticosDiario(viatico);
@@ -1304,7 +1322,22 @@ const app = createApp({
 
             const startDate = new Date(eventData.startDate);
             const endDate = new Date(eventData.endDate);
-            const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+            // Apply logic for duracion based on totalDays
+            let duracion;
+            if (totalDays === 1) {
+                duracion = 0.5;
+            } else if (totalDays === 2) {
+                duracion = 1.5;
+            } else if (totalDays === 3) {
+                duracion = 2.5;
+            } else if (totalDays >= 4) {
+                duracion = totalDays - 0.5; // For 4 days: 3.5, etc.
+            } else {
+                // Fallback for unexpected cases
+                duracion = totalDays > 1 ? totalDays - 0.5 : totalDays / 2;
+            }
 
             const formatDate = (date) => {
                 const d = new Date(date);
@@ -1323,7 +1356,7 @@ const app = createApp({
             return {
                 dependencia: DEPENDENCIA,
                 currentDate: formatDate(new Date('2025-05-04')),
-                duracion: duration,
+                duracion: duracion,
                 tercero: {
                     nombreTercero: tercero.nombreTercero,
                     nacimiento: tercero.props.fechaNacimiento ? formatDate(tercero.props.fechaNacimiento) : '',
@@ -1346,7 +1379,7 @@ const app = createApp({
                     ciudadDestino: destinoCity.nombreCiudad,
                     ciudadDestinoDepartamento: destinoCity.departamento
                 },
-                cost: calculateCost(duration, destinoCity.categoria),
+                cost: calculateCost(duracion, destinoCity.categoria),
                 eventId: eventData.id
             };
         };
