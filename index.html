@@ -2217,74 +2217,126 @@ const app = createApp({
         };
 
         const generatePDF = async () => {
-            if (viaticos.value.length === 0) {
-                console.warn('[generatePDF] No viáticos available for PDF generation.');
-                alert('No hay viáticos para generar el PDF.');
-                return;
-            }
+    if (viaticos.value.length === 0) {
+        console.warn('[generatePDF] No viáticos available for PDF generation.');
+        alert('No hay viáticos para generar el PDF.');
+        return;
+    }
 
-            if (typeof window.html2canvas !== 'function') {
-                console.error('[generatePDF] html2canvas is not loaded.');
-                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-                return;
-            }
+    if (typeof window.html2canvas !== 'function') {
+        console.error('[generatePDF] html2canvas is not loaded.');
+        alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+        return;
+    }
 
-            const { jsPDF } = window.jspdf;
+    if (typeof JSZip !== 'function') {
+        console.error('[generatePDF] JSZip is not loaded.');
+        alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
+        return;
+    }
+
+    if (typeof saveAs !== 'function') {
+        console.error('[generatePDF] FileSaver.js is not loaded.');
+        alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const zip = new JSZip();
+    let pdfCount = 0;
+
+    // Sort viáticos by tercero.nombreTercero for consistent numbering
+    const sortedViaticos = [...viaticos.value].sort((a, b) =>
+        a.tercero.nombreTercero.localeCompare(b.tercero.nombreTercero)
+    );
+
+    // Define letter size in pixels at 72 DPI
+    const letterWidthPx = 612; // 8.5 inches * 72 DPI
+    const letterHeightPx = 792; // 11 inches * 72 DPI
+
+    for (let index = 0; index < sortedViaticos.length; index++) {
+        const pageElement = document.getElementById(`pf1-${index}`);
+        if (!pageElement) {
+            console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
+            continue;
+        }
+
+        try {
+            // Create a new jsPDF instance for each viático with letter size
             const doc = new jsPDF({
                 orientation: 'portrait',
                 unit: 'px',
-                format: 'a4'
+                format: [letterWidthPx, letterHeightPx],
+                compression: true
             });
 
-            let hasValidPages = false;
+            const originalDisplay = pageElement.style.display;
+            pageElement.style.display = 'block';
 
-            for (let index = 0; index < viaticos.value.length; index++) {
-                const pageElement = document.getElementById(`pf1-${index}`);
-                if (!pageElement) {
-                    console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
-                    continue;
-                }
+            // Calculate scale to fit letter size with intermediate quality
+            const elementWidth = pageElement.offsetWidth;
+            const elementHeight = pageElement.offsetHeight;
+            const scale = Math.min(letterWidthPx / elementWidth, letterHeightPx / elementHeight) * 1.5; // Increased to 1.5 for better quality
 
-                try {
-                    const originalDisplay = pageElement.style.display;
-                    pageElement.style.display = 'block';
+            const canvas = await window.html2canvas(pageElement, {
+                scale: scale,
+                useCORS: true,
+                logging: true,
+                width: elementWidth,
+                height: elementHeight,
+                windowWidth: elementWidth,
+                windowHeight: elementHeight
+            });
 
-                    const canvas = await window.html2canvas(pageElement, {
-                        scale: 2,
-                        useCORS: true,
-                        logging: true,
-                        width: pageElement.offsetWidth,
-                        height: pageElement.offsetHeight
-                    });
+            pageElement.style.display = originalDisplay;
 
-                    pageElement.style.display = originalDisplay;
+            // Convert canvas to JPEG with higher quality (0.9)
+            const imgData = canvas.toDataURL('image/jpeg', 0.9); // 90% quality
+            const imgProps = doc.getImageProperties(imgData);
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgProps = doc.getImageProperties(imgData);
-                    const pdfWidth = doc.internal.pageSize.getWidth();
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            // Add image with medium compression
+            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
+            console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
 
-                    if (index > 0 && hasValidPages) {
-                        doc.addPage();
-                    }
+            // Generate unique filename
+            const terceroName = sortedViaticos[index].tercero.nombreTercero.replace(/\s+/g, '_');
+            const destinoCity = sortedViaticos[index].event.ciudadDestino.replace(/\s+/g, '_');
+            const startDate = sortedViaticos[index].event.startDate.split('/').join('-');
+            const paddedIndex = String(index + 1).padStart(2, '0');
+            const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
 
-                    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    hasValidPages = true;
-                    console.log(`[generatePDF] Added page ${index + 1} to PDF.`);
-                } catch (error) {
-                    console.error(`[generatePDF] Error generating page ${index + 1}:`, error);
-                    alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
-                }
-            }
+            // Convert PDF to blob and add to ZIP
+            const pdfBlob = doc.output('blob');
+            zip.file(filename, pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
+            pdfCount++;
+            console.log(`[generatePDF] Added to ZIP: ${filename}, size: ${(pdfBlob.size / 1024 / 1024).toFixed(2)} MB`);
+        } catch (error) {
+            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}:`, error);
+            alert(`Error al generar el PDF para el viático ${index + 1}: ${error.message}. Continuando con los demás viáticos.`);
+        }
+    }
 
-            if (hasValidPages) {
-                console.log('[generatePDF] Saving PDF...');
-                doc.save(`comision_servicios_${new Date().toISOString().split('T')[0]}.pdf`);
-            } else {
-                console.warn('[generatePDF] No valid pages generated for PDF.');
-                alert('No se generaron páginas válidas para el PDF.');
-            }
-        };
+    if (pdfCount > 0) {
+        try {
+            // Generate ZIP file with compression and trigger download
+            const zipBlob = await zip.generateAsync({
+                type: 'blob',
+                compression: 'DEFLATE',
+                compressionOptions: { level: 6 }
+            });
+            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
+            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        } catch (error) {
+            console.error('[generatePDF] Error generating ZIP file:', error);
+            alert('Error al generar el archivo ZIP: ' + error.message);
+        }
+    } else {
+        console.warn('[generatePDF] No valid PDFs generated for ZIP.');
+        alert('No se generaron PDFs válidos para incluir en el ZIP.');
+    }
+};
         // ----------------------------------
         // End Component: Visor PDF Management
         // ----------------------------------
