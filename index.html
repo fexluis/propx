@@ -558,6 +558,9 @@ const CityDataSource = async () => {
 // End Component: Vue Setup and Imports
 // ----------------------------------
 
+// ----------------------------------
+// Component: Vue App Initialization
+// ----------------------------------
 const app = createApp({
     setup() {
         // ----------------------------------
@@ -649,6 +652,9 @@ const app = createApp({
             programming: false,
             eventLimit: false
         });
+        // ----------------------------------
+        // End Component: State management
+        // ----------------------------------
 
         // ----------------------------------
         // Component: Button State Management
@@ -1371,14 +1377,19 @@ const app = createApp({
         // Component: Programming Management
         // ----------------------------------
         const computeViaticoForProgramming = () => {
+            console.log('[computeViaticoForProgramming] Starting computation...');
+            console.log('[computeViaticoForProgramming] Terceros count:', terceros.value.length);
+            console.log('[computeViaticoForProgramming] Cities count:', cities.value.length);
+            console.log('[computeViaticoForProgramming] Events count:', events.value.length);
+
             if (!terceros.value.length || !cities.value.length) {
-                console.warn('Terceros or cities not loaded. Cannot compute viáticos.');
+                console.warn('[computeViaticoForProgramming] Terceros or cities not loaded. Cannot compute viáticos.');
                 viaticos.value = [];
                 return;
             }
 
             if (!programmingRange.value.start || !programmingRange.value.end) {
-                console.warn('No date range selected. Setting default range.');
+                console.warn('[computeViaticoForProgramming] No date range selected. Setting default range.');
                 const today = new Date();
                 const start = new Date(today.getFullYear(), today.getMonth(), 1);
                 const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -1386,28 +1397,31 @@ const app = createApp({
                 programmingRange.value.end = end.toISOString().split('T')[0];
             }
 
-            console.debug('Programming date range:', {
+            console.log('[computeViaticoForProgramming] Date range:', {
                 start: programmingRange.value.start,
                 end: programmingRange.value.end
             });
 
             const startDate = new Date(programmingRange.value.start);
             const endDate = new Date(programmingRange.value.end);
+            endDate.setDate(endDate.getDate() + 1); // Include end date in range
+
             const filteredEvents = events.value.filter(event => {
                 const eventStart = new Date(event.startDate);
                 const isWithinRange = eventStart >= startDate && eventStart <= endDate;
                 const hasRequiredFields = event.terceroId && event.destino;
-                console.debug('Event filter:', {
+                console.log('[computeViaticoForProgramming] Filtering event:', {
                     eventId: event.id,
                     startDate: event.startDate,
                     isWithinRange,
                     hasTercero: !!event.terceroId,
-                    hasDestino: !!event.destino
+                    hasDestino: !!event.destino,
+                    included: isWithinRange && hasRequiredFields
                 });
                 return isWithinRange && hasRequiredFields;
             });
 
-            console.debug('Filtered events:', filteredEvents.map(e => ({
+            console.log('[computeViaticoForProgramming] Filtered events:', filteredEvents.map(e => ({
                 id: e.id,
                 startDate: e.startDate,
                 terceroId: e.terceroId,
@@ -1415,7 +1429,19 @@ const app = createApp({
             })));
 
             const newViaticos = filteredEvents
-                .map(event => createViaticoObject(event, terceros.value, cities.value))
+                .map(event => {
+                    const viatico = createViaticoObject(event, terceros.value, cities.value);
+                    console.log('[computeViaticoForProgramming] Created viatico for event:', {
+                        eventId: event.id,
+                        viatico: viatico ? {
+                            eventId: viatico.eventId,
+                            tercero: viatico.tercero.nombreTercero,
+                            startDate: viatico.event.startDate,
+                            destino: viatico.event.ciudadDestino
+                        } : null
+                    });
+                    return viatico;
+                })
                 .filter(viatico => viatico !== null);
 
             // Remove duplicates based on eventId
@@ -1424,66 +1450,137 @@ const app = createApp({
             );
 
             // Force reactivity update
-            viaticos.value = [...viaticos.value];
+            viaticos.value = reactive([...viaticos.value]);
 
-            console.debug('Computed viáticos:', viaticos.value.map(v => ({
+            console.log('[computeViaticoForProgramming] Computed viáticos:', viaticos.value.map(v => ({
                 eventId: v.eventId,
                 tercero: v.tercero.nombreTercero,
                 startDate: v.event.startDate,
-                destino: v.event.ciudadDestino
+                destino: v.event.ciudadDestino,
+                cost: v.cost
             })));
 
             if (!viaticos.value.length) {
-                console.warn('No viáticos generated for the selected date range.');
+                console.warn('[computeViaticoForProgramming] No viáticos generated for the selected date range.');
+            } else {
+                console.log('[computeViaticoForProgramming] Total viáticos generated:', viaticos.value.length);
             }
         };
 
         const generateProgrammingJson = () => {
+            console.log('[generateProgrammingJson] Starting...');
+            console.log('[generateProgrammingJson] Initial state:', {
+                tercerosCount: terceros.value.length,
+                citiesCount: cities.value.length,
+                eventsCount: events.value.length,
+                programmingRange: programmingRange.value,
+                viaticosCount: viaticos.value.length
+            });
+
             if (!terceros.value.length || !cities.value.length) {
+                console.error('[generateProgrammingJson] Error: Terceros or cities not loaded.');
                 alert('Error: Terceros o ciudades no están cargados.');
                 return;
             }
 
             if (!programmingRange.value.start || !programmingRange.value.end) {
+                console.warn('[generateProgrammingJson] No date range selected.');
                 alert('Por favor, selecciona un rango de fechas.');
                 return;
             }
 
-            console.debug('Starting generateProgrammingJson with viaticos:', viaticos.value.length);
-
-            // Compute viáticos
+            console.log('[generateProgrammingJson] Computing viáticos...');
             computeViaticoForProgramming();
 
-            // Log viaticos JSON for debugging
-            console.log('Viaticos JSON:', JSON.stringify(viaticos.value, null, 2));
+            console.log('[generateProgrammingJson] Viaticos after computation:', {
+                count: viaticos.value.length,
+                details: viaticos.value.map(v => ({
+                    eventId: v.eventId,
+                    tercero: v.tercero.nombreTercero,
+                    startDate: v.event.startDate,
+                    endDate: v.event.endDate,
+                    destino: v.event.ciudadDestino,
+                    cost: v.cost
+                }))
+            });
 
             const startDate = new Date(programmingRange.value.start);
             const endDate = new Date(programmingRange.value.end);
-            const filteredEvents = events.value.filter(event => {
-                const eventStart = new Date(event.startDate);
-                return eventStart >= startDate && eventStart <= endDate && event.terceroId && event.destino;
+            endDate.setDate(endDate.getDate() + 1); // Include end date
+
+            console.log('[generateProgrammingJson] Filtering events for JSON...', {
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
             });
 
-            const eventsWithViatico = filteredEvents.map(event => ({
-                ...event,
-                viatico: viaticos.value.find(v => v.eventId === event.id) || null
-            }));
+            const filteredEvents = events.value.filter(event => {
+                const eventStart = new Date(event.startDate);
+                const isWithinRange = eventStart >= startDate && eventStart <= endDate;
+                const hasRequiredFields = event.terceroId && event.destino;
+                console.log('[generateProgrammingJson] Event filter:', {
+                    eventId: event.id,
+                    startDate: event.startDate,
+                    isWithinRange,
+                    hasTercero: !!event.terceroId,
+                    hasDestino: !!event.destino,
+                    included: isWithinRange && hasRequiredFields
+                });
+                return isWithinRange && hasRequiredFields;
+            });
+
+            console.log('[generateProgrammingJson] Filtered events for JSON:', filteredEvents.map(e => ({
+                id: e.id,
+                startDate: e.startDate,
+                terceroId: e.terceroId,
+                destino: e.destino
+            })));
+
+            const eventsWithViatico = filteredEvents.map(event => {
+                const viatico = viaticos.value.find(v => v.eventId === event.id);
+                console.log('[generateProgrammingJson] Mapping event:', {
+                    eventId: event.id,
+                    hasViatico: !!viatico,
+                    viatico: viatico ? {
+                        tercero: viatico.tercero.nombreTercero,
+                        startDate: viatico.event.startDate,
+                        destino: viatico.event.ciudadDestino
+                    } : null
+                });
+                return {
+                    ...event,
+                    viatico: viatico || null
+                };
+            });
 
             programmingEventsJson.value = JSON.stringify(eventsWithViatico, null, 2);
-            console.debug('Generated programming JSON with viáticos:', eventsWithViatico);
+            console.log('[generateProgrammingJson] Generated JSON:', programmingEventsJson.value);
 
-            // Force re-render of Visor PDF
+            // Force reactivity update
+            programmingEventsJson.value = reactive(programmingEventsJson.value);
+
+            console.log('[generateProgrammingJson] Final viaticos state:', {
+                count: viaticos.value.length,
+                details: viaticos.value.map(v => ({
+                    eventId: v.eventId,
+                    tercero: v.tercero.nombreTercero,
+                    startDate: v.event.startDate,
+                    destino: v.event.ciudadDestino
+                }))
+            });
+
+            // Close modal and toggle Visor PDF
+            showProgrammingModal.value = false;
             nextTick(() => {
+                console.log('[generateProgrammingJson] Toggling Visor PDF...');
                 if (showVisorPDF.value) {
                     toggleVisorPDF(); // Briefly toggle off
                     nextTick(() => toggleVisorPDF()); // Toggle back on
                 } else {
                     toggleVisorPDF();
                 }
-                debugViaticos(); // Debug viaticos after rendering
+                debugViaticos();
+                console.log('[generateProgrammingJson] Completed.');
             });
-
-            showProgrammingModal.value = false;
         };
 
         const openProgrammingModal = () => {
@@ -2043,22 +2140,19 @@ const app = createApp({
         // Component: Visor PDF Management
         // ----------------------------------
         const debugViaticos = () => {
-            console.debug('Visor PDF viaticos:', viaticos.value);
-            console.debug('Number of viaticos:', viaticos.value.length);
+            console.log('[debugViaticos] Debugging viaticos...');
+            console.log('[debugViaticos] Viaticos count:', viaticos.value.length);
             viaticos.value.forEach((viatico, index) => {
-                console.debug(`Viatico ${index}:`, {
+                console.log(`[debugViaticos] Viatico ${index}:`, {
                     tercero: viatico.tercero.nombreTercero,
                     startDate: viatico.event.startDate,
                     endDate: viatico.event.endDate,
                     destino: viatico.event.ciudadDestino,
-                    eventId: viatico.eventId
+                    eventId: viatico.eventId,
+                    cost: viatico.cost
                 });
                 const element = document.getElementById(`pf1-${index}`);
-                if (!element) {
-                    console.warn(`Element pf1-${index} not found in DOM`);
-                } else {
-                    console.debug(`Element pf1-${index} found in DOM`);
-                }
+                console.log(`[debugViaticos] Element pf1-${index} exists:`, !!element);
             });
         };
 
@@ -2094,12 +2188,13 @@ const app = createApp({
 
         const generatePDF = async () => {
             if (viaticos.value.length === 0) {
+                console.warn('[generatePDF] No viáticos available for PDF generation.');
                 alert('No hay viáticos para generar el PDF.');
                 return;
             }
 
             if (typeof window.html2canvas !== 'function') {
-                console.error('html2canvas is not loaded.');
+                console.error('[generatePDF] html2canvas is not loaded.');
                 alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
                 return;
             }
@@ -2116,7 +2211,7 @@ const app = createApp({
             for (let index = 0; index < viaticos.value.length; index++) {
                 const pageElement = document.getElementById(`pf1-${index}`);
                 if (!pageElement) {
-                    console.warn(`Page element pf1-${index} not found. Skipping.`);
+                    console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
                     continue;
                 }
 
@@ -2145,15 +2240,18 @@ const app = createApp({
 
                     doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
                     hasValidPages = true;
+                    console.log(`[generatePDF] Added page ${index + 1} to PDF.`);
                 } catch (error) {
-                    console.error(`Error generating page ${index + 1}:`, error);
+                    console.error(`[generatePDF] Error generating page ${index + 1}:`, error);
                     alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
                 }
             }
 
             if (hasValidPages) {
+                console.log('[generatePDF] Saving PDF...');
                 doc.save(`comision_servicios_${new Date().toISOString().split('T')[0]}.pdf`);
             } else {
+                console.warn('[generatePDF] No valid pages generated for PDF.');
                 alert('No se generaron páginas válidas para el PDF.');
             }
         };
@@ -2165,8 +2263,14 @@ const app = createApp({
         // Component: Lifecycle Hooks
         // ----------------------------------
         onMounted(async () => {
+            console.log('[onMounted] Initializing app...');
             await loadTerceros();
             await loadCities();
+            console.log('[onMounted] Loaded:', {
+                terceros: terceros.value.length,
+                cities: cities.value.length
+            });
+
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'es',
@@ -2236,11 +2340,12 @@ const app = createApp({
             calendarApi.value = calendar;
             calendar.render();
             renderEvents();
-            computeViaticoForProgramming();
             updateButtonStates();
+            console.log('[onMounted] Calendar initialized.');
         });
 
         onUnmounted(() => {
+            console.log('[onUnmounted] Cleaning up...');
             if (calendarApi.value) {
                 calendarApi.value.destroy();
                 calendarApi.value = null;
@@ -2263,7 +2368,7 @@ const app = createApp({
         // ----------------------------------
 
         // ----------------------------------
-        // Exposed methods and properties
+        // Component: Exposed methods and properties
         // ----------------------------------
         return {
             currentView,
@@ -2361,7 +2466,7 @@ const app = createApp({
             debugViaticos
         };
         // ----------------------------------
-        // End Exposed methods and properties
+        // End Component: Exposed methods and properties
         // ----------------------------------
     }
 });
