@@ -1327,7 +1327,8 @@ const app = createApp({
                     ciudadDestino: destinoCity.nombreCiudad,
                     ciudadDestinoDepartamento: destinoCity.departamento
                 },
-                cost: calculateCost(duration, destinoCity.categoria)
+                cost: calculateCost(duration, destinoCity.categoria),
+                eventId: eventData.id // Added to ensure uniqueness
             };
         };
         // ----------------------------------
@@ -1398,12 +1399,9 @@ const app = createApp({
                 .map(event => createViaticoObject(event, terceros.value, cities.value))
                 .filter(viatico => viatico !== null);
 
-            // Remove duplicates based on terceroId and startDate
+            // Remove duplicates based on eventId to ensure each event generates a viatico
             viaticos.value = newViaticos.filter((viatico, index, self) =>
-                index === self.findIndex(v =>
-                    v.tercero.numeroDocumentoTercero === viatico.tercero.numeroDocumentoTercero &&
-                    v.event.startDate === viatico.event.startDate
-                )
+                index === self.findIndex(v => v.eventId === viatico.eventId)
             );
 
             // Force reactivity update
@@ -1434,6 +1432,9 @@ const app = createApp({
             });
 
             computeViaticoForProgramming(); // Update viaticos first
+
+            // Log viaticos JSON for debugging
+            console.log('Viaticos JSON:', JSON.stringify(viaticos.value, null, 2));
 
             const eventsWithViatico = filteredEvents.map(event => ({
                 ...event,
@@ -2021,13 +2022,14 @@ const app = createApp({
                     tercero: viatico.tercero.nombreTercero,
                     startDate: viatico.event.startDate,
                     endDate: viatico.event.endDate,
-                    destino: viatico.event.ciudadDestino
+                    destino: viatico.event.ciudadDestino,
+                    eventId: viatico.eventId
                 });
                 const element = document.getElementById(`pf1-${index}`);
                 if (!element) {
                     console.warn(`Element pf1-${index} not found in DOM`);
                 } else {
-                    console.debug(`Element pf1-${index} found`);
+                    console.debug(`Element pf1-${index} found in DOM`);
                 }
             });
         };
