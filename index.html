@@ -26,7 +26,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico 3-pf1-v2</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico 3-pf1-v3</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -2218,10 +2218,14 @@ const app = createApp({
 	    const zip = new JSZip();
 	    let pdfCount = 0;
 	
-	    // Sort viáticos by tercero.nombreTercero to ensure consistent numbering
+	    // Sort viáticos by tercero.nombreTercero for consistent numbering
 	    const sortedViaticos = [...viaticos.value].sort((a, b) =>
 	        a.tercero.nombreTercero.localeCompare(b.tercero.nombreTercero)
 	    );
+	
+	    // Define A4 dimensions in pixels at 72 DPI (standard PDF resolution)
+	    const a4WidthPx = 595; // A4 width in pixels at 72 DPI
+	    const a4HeightPx = 842; // A4 height in pixels at 72 DPI
 	
 	    for (let index = 0; index < sortedViaticos.length; index++) {
 	        const pageElement = document.getElementById(`pf1-${index}`);
@@ -2235,28 +2239,38 @@ const app = createApp({
 	            const doc = new jsPDF({
 	                orientation: 'portrait',
 	                unit: 'px',
-	                format: 'a4'
+	                format: [a4WidthPx, a4HeightPx],
+	                compression: true // Enable compression
 	            });
 	
 	            const originalDisplay = pageElement.style.display;
 	            pageElement.style.display = 'block';
 	
+	            // Calculate scale to fit A4 dimensions
+	            const elementWidth = pageElement.offsetWidth;
+	            const elementHeight = pageElement.offsetHeight;
+	            const scale = Math.min(a4WidthPx / elementWidth, a4HeightPx / elementHeight) * 1.2; // Slightly higher than 1 for clarity
+	
 	            const canvas = await window.html2canvas(pageElement, {
-	                scale: 2,
+	                scale: scale, // Reduced scale for smaller file size
 	                useCORS: true,
 	                logging: true,
-	                width: pageElement.offsetWidth,
-	                height: pageElement.offsetHeight
+	                width: elementWidth,
+	                height: elementHeight,
+	                windowWidth: elementWidth,
+	                windowHeight: elementHeight
 	            });
 	
 	            pageElement.style.display = originalDisplay;
 	
-	            const imgData = canvas.toDataURL('image/png');
+	            // Convert canvas to JPEG with quality 0.8
+	            const imgData = canvas.toDataURL('image/jpeg', 0.8); // JPEG with 80% quality
 	            const imgProps = doc.getImageProperties(imgData);
 	            const pdfWidth = doc.internal.pageSize.getWidth();
 	            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 	
-	            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+	            // Add image with compression
+	            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
 	
 	            // Generate unique filename
@@ -2268,9 +2282,9 @@ const app = createApp({
 	
 	            // Convert PDF to blob and add to ZIP
 	            const pdfBlob = doc.output('blob');
-	            zip.file(filename, pdfBlob);
+	            zip.file(filename, pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
 	            pdfCount++;
-	            console.log(`[generatePDF] Added to ZIP: ${filename}`);
+	            console.log(`[generatePDF] Added to ZIP: ${filename}, size: ${(pdfBlob.size / 1024 / 1024).toFixed(2)} MB`);
 	        } catch (error) {
 	            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}:`, error);
 	            alert(`Error al generar el PDF para el viático ${index + 1}: ${error.message}. Continuando con los demás viáticos.`);
@@ -2279,10 +2293,14 @@ const app = createApp({
 	
 	    if (pdfCount > 0) {
 	        try {
-	            // Generate ZIP file and trigger download
-	            const zipBlob = await zip.generateAsync({ type: 'blob' });
+	            // Generate ZIP file with compression and trigger download
+	            const zipBlob = await zip.generateAsync({
+	                type: 'blob',
+	                compression: 'DEFLATE',
+	                compressionOptions: { level: 6 } // Medium-high compression
+	            });
 	            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
-	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs.');
+	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
 	        } catch (error) {
 	            console.error('[generatePDF] Error generating ZIP file:', error);
 	            alert('Error al generar el archivo ZIP: ' + error.message);
