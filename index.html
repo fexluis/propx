@@ -515,6 +515,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+<!-- ---------------------------------- -->
+<!-- Component: JavaScript and Vue app initialization -->
+<!-- ---------------------------------- -->
 <script>
 // ----------------------------------
 // Component: Vue Setup and Imports
@@ -1453,6 +1456,53 @@ const app = createApp({
 
             showProgrammingModal.value = false;
         };
+
+        const openProgrammingModal = () => {
+            if (showTimeline.value || showVisorPDF.value) return;
+            showProgrammingModal.value = true;
+            updateButtonStates();
+
+            nextTick(() => {
+                if (programmingDateRangePicker.value) {
+                    programmingFlatpickrInstance = flatpickr(programmingDateRangePicker.value, {
+                        mode: 'range',
+                        dateFormat: 'Y-m-d',
+                        locale: 'es',
+                        defaultDate: [programmingRange.value.start, programmingRange.value.end],
+                        onChange: (selectedDates) => {
+                            if (selectedDates.length === 2) {
+                                programmingRange.value.start = selectedDates[0].toISOString().split('T')[0];
+                                programmingRange.value.end = selectedDates[1].toISOString().split('T')[0];
+                            }
+                        },
+                        onReady: (selectedDates, dateStr, instance) => {
+                            if (programmingRange.value.start && programmingRange.value.end) {
+                                programmingDateRangePicker.value.value = `${programmingRange.value.start} a ${programmingRange.value.end}`;
+                            }
+                        },
+                        onOpen: (selectedDates, dateStr, instance) => {
+                            if (programmingRange.value.start && programmingRange.value.end) {
+                                programmingDateRangePicker.value.value = `${programmingRange.value.start} a ${programmingRange.value.end}`;
+                            }
+                        }
+                    });
+
+                    if (programmingRange.value.start && programmingRange.value.end) {
+                        programmingDateRangePicker.value.value = `${programmingRange.value.start} a ${programmingRange.value.end}`;
+                    }
+                }
+            });
+        };
+
+        const closeProgrammingModal = () => {
+            showProgrammingModal.value = false;
+            programmingRange.value = { start: '', end: '' };
+            if (programmingFlatpickrInstance) {
+                programmingFlatpickrInstance.destroy();
+                programmingFlatpickrInstance = null;
+            }
+            updateButtonStates();
+        };
         // ----------------------------------
         // End Component: Programming Management
         // ----------------------------------
@@ -2292,5 +2342,8 @@ const app = createApp({
 
 app.mount('#app');
 </script>
+<!-- ---------------------------------- -->
+<!-- End Component: JavaScript and Vue app initialization -->
+<!-- ---------------------------------- -->
 </body>
 </html>
