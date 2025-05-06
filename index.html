@@ -89,7 +89,15 @@
 	                    <button @click="goToToday" class="px-3 py-1 rounded-md flex items-center hover:bg-blue-700" :disabled="disabledButtons.today">
 	                        <i class="fas fa-calendar-day mr-2"></i>
 	                        <span>Hoy</span>
-	                    </button>	                    
+	                    </button>
+			    <button @click="openPeriodoModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.periodo" style="display:none;">
+	                        <i class="fas fa-calendar mr-2"></i>
+	                        <span>Periodo</span>
+	                    </button>
+	                    <button @click="toggleTimeline" :class="{'bg-blue-700': showTimeline}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.timeline" style="display:none;">
+	                        <i class="fas fa-list-alt mr-2"></i>
+	                        <span>Cronograma</span>
+	                    </button>	
 	                    <button @click="toggleVisorPDF" :class="{'bg-blue-700': showVisorPDF}" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.visorPDF">
 	                        <i class="fas fa-file-pdf mr-2"></i>
 	                        <span>Visor PDF</span>
@@ -2004,7 +2012,9 @@ const app = createApp({
             computeViaticoForProgramming,
             reinitializeCalendar,
             disabledButtons,
-            debugViaticos
+            debugViaticos,
+	    openPeriodoModal, 
+	    toggleTimeline	
         };
         // ----------------------------------
         // End Component: Exposed methods and properties
