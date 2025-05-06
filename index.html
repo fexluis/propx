@@ -24,7 +24,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v4</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v5</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -345,43 +345,44 @@
         </div>
 
         <!-- CONTRATISTA Template -->
-        <div v-if="viatico.tercero.tipoTercero === 'CONTRATISTA'" :id="'pf3-' + index" class="pf w18 h23" :data-page-no="index + 1">
-            <div class="pc pc3 w18 h23">
-                <img class="bi x0 y0 w19 h24" alt="" src="assets/bg3.png?v=1" />
-                <div class="c x2e y68 w1a h25">
-                    <div class="t m0 x2f h26 y69 ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.nombreTercero || '' }}</div>
-                    <div class="t m0 x5 h26 y6a ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.tipoTercero || '' }}</div>
-                    <div class="t m0 x30 h26 y6b ff1 fs4 fc0 sc0 ls0 ws0">CONTRATISTA</div>
-                </div>
-                <!-- ... Rest of pf3 template content ... -->
-		<div class="c x0 ya0 w2b h3b"><div class="t m0 x26 h26 ya1 ff1 fs4 fc2 sc2 ls0 ws0">Descripción del día</div></div>
+	<div v-if="viatico.tercero.tipoTercero === 'CONTRATISTA'" :id="'pf3-' + index" class="pf w18 h23" :data-page-no="index + 1">
+	    <div class="pc pc3 w18 h23">
+	        <img class="bi x0 y0 w19 h24" alt="" src="assets/bg3.png?v=1" />
+	        <div class="c x2e y68 w1a h25">
+	            <div class="t m0 x2f h26 y69 ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.nombreTercero || '' }}</div>
+	            <div class="t m0 x5 h26 y6a ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.tipoTercero || '' }}</div>
+	            <div class="t m0 x30 h26 y6b ff1 fs4 fc0 sc0 ls0 ws0">CONTRATISTA</div>
+	        </div>
+	        <!-- ... Rest of pf3 template content ... -->
+	        <div class="c x0 ya0 w2b h3b"><div class="t m0 x26 h26 ya1 ff1 fs4 fc2 sc2 ls0 ws0">Descripción del día</div></div>
 	        <div class="c x36 ya0 w24 h3b"><div class="t m0 x3f h26 ya1 ff1 fs4 fc2 sc2 ls0 ws0">No. de Días</div></div>
 	        <div class="c x33 ya0 w1f h3b"><div class="t m0 x40 h26 ya1 ff1 fs4 fc2 sc2 ls0 ws0">Viáticos Diario</div></div>
 	        <div class="c x31 ya0 w1b h3b"><div class="t m0 x24 h26 ya1 ff1 fs4 fc2 sc2 ls0 ws0">Total</div></div>
 	        <div class="c x0 ya2 w2b h3c"><div class="t m0 x3b h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">Pernoctados</div></div>
-	        <div class="c x36 ya2 w24 h3c"><div class="t m0 x3d h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">{{ viaticoDiaPernoctados }}</div></div>
+	        <div class="c x36 ya2 w24 h3c"><div class="t m0 x3d h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaPernoctados }}</div></div>
 	        <div class="c x33 ya2 w1f h3c">
-	            <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _6"> </span>{{ valorViaticosDiario }}</div>
+	            <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _6"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
 	        </div>
 	        <div class="c x31 ya2 w1b h3c">
-	            <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _8"> </span>{{ viaticoDiario = valorViaticosDiario * viaticoDiaPernoctados }}</div>
+	            <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _8"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
 	        </div>
 	        <div class="c x0 ya4 w2b h3c"><div class="t m0 x25 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
-	        <div class="c x36 ya4 w24 h3c"><div class="t m0 x3d h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">{{ viaticoDiaNoPernoctados }}</div></div>
+	        <div class="c x36 ya4 w24 h3c"><div class="t m0 x3d h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaNoPernoctados }}</div></div>
 	        <div class="c x33 ya4 w1f h3c">
-	            <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _6"> </span>{{ REDONDEAR((valorViaticosDiario/2), 0) }}</div>
+	            <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _6"> </span>{{ formatCurrency(REDONDEAR(computeViaticoDetails(viatico).viaticoValorDiario / 2, 0)) }}</div>
 	        </div>
 	        <div class="c x31 ya4 w1b h3c">
-	            <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _8"> </span>{{ viaticoDiarioMedio = REDONDEAR((valorViaticosDiario/2), 0) * viaticoDiaNoPernoctados }}</div>
+	            <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _8"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiarioMedio) }}</div>
 	        </div>
 	        <div class="c x0 ya6 w2c h3c"><div class="t m0 x41 h26 ya7 ff1 fs4 fc2 sc2 ls0 ws0">Total Viáticos</div></div>
 	        <div class="c x31 ya6 w1b h3c">
-	            <div class="t m0 x5 h26 ya7 ff1 fs4 fc2 sc2 ls0 ws0">$ <span class="_ _8"> </span>{{ viaticoTotal = viaticoDiario + viaticoDiarioMedio }}</div>
+	            <div class="t m0 x5 h26 ya7 ff1 fs4 fc2 sc2 ls0 ws0">$ <span class="_ _8"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotal) }}</div>
 	        </div>
-                <div class="c x0 yc7 w2c h42"><div class="t m0 x5 h43 yce ff3 fs8 fc2 sc3 ls0 ws0">Aprobó: Yeimi Viviana Agudo, Directora Territorial</div></div>
-            </div>
-            <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
-        </div>
+	        <div class="c x0 yc7 w2c h42"><div class="t m0 x5 h43 yce ff3 fs8 fc2 sc3 ls0 ws0">Aprobó: Yeimi Viviana Agudo, Directora Territorial</div></div>
+	    </div>
+	    <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
+	</div>
+	<!-- End CONTRATISTA Template -->    
     </div>
 </div>
 <!-- ---------------------------------- -->
@@ -443,9 +444,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-<!-- ---------------------------------- -->
-<!-- Component: JavaScript and Vue app initialization -->
-<!-- ---------------------------------- -->
+<!-- JavaScript and Vue app initialization -->
 <script>
 // ----------------------------------
 // Component: Vue Setup and Imports
@@ -568,7 +567,7 @@ const app = createApp({
         });
         const DEPENDENCIA = "0072DP - DECANATURA PREGRADO";
         const viaticos = ref([]);
-	const isGeneratingPDF = ref(false);    
+        const isGeneratingPDF = ref(false);    
         const showVisorPDF = ref(false);
         const disabledButtons = ref({
             month: false,
@@ -797,6 +796,93 @@ const app = createApp({
         };
         // ----------------------------------
         // End Component: Cities Management
+        // ----------------------------------
+
+        // ----------------------------------
+        // Component: Viáticos Calculation Functions
+        // ----------------------------------
+        // Function to calculate the base tariff based on baseLiquidacion
+        const tarifaViaticosDiario = (valor) => {
+            const numValor = parseFloat(valor.replace(/,/g, '')); // Remove commas if any
+            if (numValor >= 0 && numValor <= 1674542) return 151878;
+            if (numValor <= 2631382) return 207569;
+            if (numValor <= 3613828) return 251853;
+            if (numValor <= 4456815) return 293056;
+            if (numValor <= 5382527) return 336520;
+            if (numValor <= 8117664) return 379828;
+            if (numValor <= 11345698) return 461358;
+            if (numValor <= 13471440) return 622374;
+            if (numValor <= 16583843) return 809075;
+            if (numValor <= 20053045) return 978656;
+            return 1152515; // For values >= 20,053,046 ("En adelante")
+        };
+
+        // Function to calculate the viático value based on tipoTercero
+        const valorViaticosDiario = (viatico) => {
+            const tarifaBase = tarifaViaticosDiario(viatico.tercero.props.baseLiquidacion); // Use baseLiquidacion from tercero props
+
+            if (viatico.tercero.tipoTercero === 'SERVIDOR') {
+                return tarifaBase * 1.0; // 100% of tarifaBase
+            } 
+            if (viatico.tercero.tipoTercero === 'CONTRATISTA') {
+                return tarifaBase * 0.8; // 80% of tarifaBase
+            }
+
+            return tarifaBase; // Default case if tipoTercero is neither SERVIDOR nor CONTRATISTA
+        };
+
+        // Function to round numbers as per REDONDEAR specification
+        const REDONDEAR = (value, decimals) => {
+            return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+        };
+
+        // Function to format numbers with commas and decimals (e.g., 622,374.00)
+        const formatCurrency = (value) => {
+            const rounded = REDONDEAR(value, 2); // Ensure 2 decimal places
+            return rounded.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'); // Add commas for thousands
+        };
+
+        // Compute viático details for each viatico object (used in template)
+        const computeViaticoDetails = (viatico) => {
+            // Parse dates in DD/MM/YYYY format
+            const parseDate = (dateStr) => {
+                const [day, month, year] = dateStr.split('/').map(Number);
+                return new Date(year, month - 1, day);
+            };
+
+            const startDate = parseDate(viatico.event.startDate);
+            const endDate = parseDate(viatico.event.endDate);
+
+            // Calculate total days (inclusive of start and end dates)
+            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+            // For now, we'll use the provided viaticoDiaPernoctados=2 and compute viaticoDiaNoPernoctados
+            const viaticoDiaPernoctados = 2; // As specified
+            const viaticoDiaNoPernoctados = totalDays - viaticoDiaPernoctados;
+
+            // Calculate valorViaticosDiario using the function
+            const viaticoValorDiario = valorViaticosDiario(viatico);
+
+            // Calculate viaticoDiario = valorViaticosDiario * viaticoDiaPernoctados
+            const viaticoDiario = viaticoValorDiario * viaticoDiaPernoctados;
+
+            // Calculate viaticoDiarioMedio = REDONDEAR((valorViaticosDiario/2), 0) * viaticoDiaNoPernoctados
+            const viaticoDiarioMedio = REDONDEAR(viaticoValorDiario / 2, 0) * viaticoDiaNoPernoctados;
+
+            // Calculate viaticoTotal = viaticoDiario + viaticoDiarioMedio
+            const viaticoTotal = viaticoDiario + viaticoDiarioMedio;
+
+            return {
+                viaticoDiaPernoctados,
+                viaticoDiaNoPernoctados,
+                viaticoValorDiario,
+                viaticoDiario,
+                viaticoDiarioMedio,
+                viaticoTotal
+            };
+        };
+        // ----------------------------------
+        // End Component: Viáticos Calculation Functions
         // ----------------------------------
 
         // ----------------------------------
@@ -1248,7 +1334,8 @@ const app = createApp({
                     cargoServidor: tercero.props.cargoServidor,
                     tipoCuenta: tercero.props.tipoCuenta,
                     tipoTercero: tercero.props.tipoTercero,
-                    cuentaBancaria: tercero.props.cuentaBancaria
+                    cuentaBancaria: tercero.props.cuentaBancaria,
+                    props: tercero.props // Include props for baseLiquidacion access
                 },
                 event: {
                     startDate: formatDate(eventData.startDate),
@@ -1868,8 +1955,8 @@ const generatePDF = async () => {
         // End Component: Lifecycle Hooks
         // ----------------------------------
 
-	 const openPeriodoModal = () => { };
-	 const toggleTimeline = () => { };
+        const openPeriodoModal = () => { };
+        const toggleTimeline = () => { };
 
         // ----------------------------------
         // Component: Exposed methods and properties
@@ -1934,17 +2021,20 @@ const generatePDF = async () => {
             hideDestinoOptions,            
             showVisorPDF,
             toggleVisorPDF,
-	    isGeneratingPDF,
+            isGeneratingPDF,
             generatePDF,
             computeViatico,
             computeViaticoForProgramming,
             reinitializeCalendar,
             disabledButtons,
             debugViaticos,
-	    openPeriodoModal, 
-	    toggleTimeline,
-	    showTimeline,
-    	    toggleTimeline
+            openPeriodoModal, 
+            toggleTimeline,
+            showTimeline,
+            toggleTimeline,
+            REDONDEAR,
+            formatCurrency,
+            computeViaticoDetails // Expose for template usage
         };
         // ----------------------------------
         // End Component: Exposed methods and properties
