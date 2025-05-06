@@ -26,7 +26,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico 3-pf1-v3</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico 3-pf1-v4</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -2223,9 +2223,9 @@ const app = createApp({
 	        a.tercero.nombreTercero.localeCompare(b.tercero.nombreTercero)
 	    );
 	
-	    // Define A4 dimensions in pixels at 72 DPI (standard PDF resolution)
-	    const a4WidthPx = 595; // A4 width in pixels at 72 DPI
-	    const a4HeightPx = 842; // A4 height in pixels at 72 DPI
+	    // Define letter size in pixels at 72 DPI
+	    const letterWidthPx = 612; // 8.5 inches * 72 DPI
+	    const letterHeightPx = 792; // 11 inches * 72 DPI
 	
 	    for (let index = 0; index < sortedViaticos.length; index++) {
 	        const pageElement = document.getElementById(`pf1-${index}`);
@@ -2235,24 +2235,24 @@ const app = createApp({
 	        }
 	
 	        try {
-	            // Create a new jsPDF instance for each viático
+	            // Create a new jsPDF instance for each viático with letter size
 	            const doc = new jsPDF({
 	                orientation: 'portrait',
 	                unit: 'px',
-	                format: [a4WidthPx, a4HeightPx],
-	                compression: true // Enable compression
+	                format: [letterWidthPx, letterHeightPx],
+	                compression: true
 	            });
 	
 	            const originalDisplay = pageElement.style.display;
 	            pageElement.style.display = 'block';
 	
-	            // Calculate scale to fit A4 dimensions
+	            // Calculate scale to fit letter size with intermediate quality
 	            const elementWidth = pageElement.offsetWidth;
 	            const elementHeight = pageElement.offsetHeight;
-	            const scale = Math.min(a4WidthPx / elementWidth, a4HeightPx / elementHeight) * 1.2; // Slightly higher than 1 for clarity
+	            const scale = Math.min(letterWidthPx / elementWidth, letterHeightPx / elementHeight) * 1.5; // Increased to 1.5 for better quality
 	
 	            const canvas = await window.html2canvas(pageElement, {
-	                scale: scale, // Reduced scale for smaller file size
+	                scale: scale,
 	                useCORS: true,
 	                logging: true,
 	                width: elementWidth,
@@ -2263,14 +2263,14 @@ const app = createApp({
 	
 	            pageElement.style.display = originalDisplay;
 	
-	            // Convert canvas to JPEG with quality 0.8
-	            const imgData = canvas.toDataURL('image/jpeg', 0.8); // JPEG with 80% quality
+	            // Convert canvas to JPEG with higher quality (0.9)
+	            const imgData = canvas.toDataURL('image/jpeg', 0.9); // 90% quality
 	            const imgProps = doc.getImageProperties(imgData);
 	            const pdfWidth = doc.internal.pageSize.getWidth();
 	            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 	
-	            // Add image with compression
-	            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+	            // Add image with medium compression
+	            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
 	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
 	
 	            // Generate unique filename
@@ -2297,7 +2297,7 @@ const app = createApp({
 	            const zipBlob = await zip.generateAsync({
 	                type: 'blob',
 	                compression: 'DEFLATE',
-	                compressionOptions: { level: 6 } // Medium-high compression
+	                compressionOptions: { level: 6 }
 	            });
 	            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
 	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
