@@ -2187,74 +2187,73 @@ const app = createApp({
         };
 
         const generatePDF = async () => {
-            if (viaticos.value.length === 0) {
-                console.warn('[generatePDF] No viáticos available for PDF generation.');
-                alert('No hay viáticos para generar el PDF.');
-                return;
-            }
-
-            if (typeof window.html2canvas !== 'function') {
-                console.error('[generatePDF] html2canvas is not loaded.');
-                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'px',
-                format: 'a4'
-            });
-
-            let hasValidPages = false;
-
-            for (let index = 0; index < viaticos.value.length; index++) {
-                const pageElement = document.getElementById(`pf1-${index}`);
-                if (!pageElement) {
-                    console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
-                    continue;
-                }
-
-                try {
-                    const originalDisplay = pageElement.style.display;
-                    pageElement.style.display = 'block';
-
-                    const canvas = await window.html2canvas(pageElement, {
-                        scale: 2,
-                        useCORS: true,
-                        logging: true,
-                        width: pageElement.offsetWidth,
-                        height: pageElement.offsetHeight
-                    });
-
-                    pageElement.style.display = originalDisplay;
-
-                    const imgData = canvas.toDataURL('image/png');
-                    const imgProps = doc.getImageProperties(imgData);
-                    const pdfWidth = doc.internal.pageSize.getWidth();
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-                    if (index > 0 && hasValidPages) {
-                        doc.addPage();
-                    }
-
-                    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    hasValidPages = true;
-                    console.log(`[generatePDF] Added page ${index + 1} to PDF.`);
-                } catch (error) {
-                    console.error(`[generatePDF] Error generating page ${index + 1}:`, error);
-                    alert(`Error al generar la página ${index + 1}: ${error.message}. Continuando con las demás páginas.`);
-                }
-            }
-
-            if (hasValidPages) {
-                console.log('[generatePDF] Saving PDF...');
-                doc.save(`comision_servicios_${new Date().toISOString().split('T')[0]}.pdf`);
-            } else {
-                console.warn('[generatePDF] No valid pages generated for PDF.');
-                alert('No se generaron páginas válidas para el PDF.');
-            }
-        };
+	    if (viaticos.value.length === 0) {
+	        console.warn('[generatePDF] No viáticos available for PDF generation.');
+	        alert('No hay viáticos para generar el PDF.');
+	        return;
+	    }
+	
+	    if (typeof window.html2canvas !== 'function') {
+	        console.error('[generatePDF] html2canvas is not loaded.');
+	        alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+	        return;
+	    }
+	
+	    const { jsPDF } = window.jspdf;
+	
+	    for (let index = 0; index < viaticos.value.length; index++) {
+	        const pageElement = document.getElementById(`pf1-${index}`);
+	        if (!pageElement) {
+	            console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
+	            continue;
+	        }
+	
+	        try {
+	            // Create a new jsPDF instance for each viático
+	            const doc = new jsPDF({
+	                orientation: 'portrait',
+	                unit: 'px',
+	                format: 'a4'
+	            });
+	
+	            const originalDisplay = pageElement.style.display;
+	            pageElement.style.display = 'block';
+	
+	            const canvas = await window.html2canvas(pageElement, {
+	                scale: 2,
+	                useCORS: true,
+	                logging: true,
+	                width: pageElement.offsetWidth,
+	                height: pageElement.offsetHeight
+	            });
+	
+	            pageElement.style.display = originalDisplay;
+	
+	            const imgData = canvas.toDataURL('image/png');
+	            const imgProps = doc.getImageProperties(imgData);
+	            const pdfWidth = doc.internal.pageSize.getWidth();
+	            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+	
+	            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
+	
+	            // Generate a unique filename for each viático
+	            const terceroName = viaticos.value[index].tercero.nombreTercero.replace(/\s+/g, '_');
+	            const startDate = viaticos.value[index].event.startDate.replace(/\//g, '-');
+	            const filename = `comision_servicios_${terceroName}_${startDate}_${index + 1}.pdf`;
+	
+	            doc.save(filename);
+	            console.log(`[generatePDF] Saved PDF: ${filename}`);
+	        } catch (error) {
+	            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}:`, error);
+	            alert(`Error al generar el PDF para el viático ${index + 1}: ${error.message}. Continuando con los demás viáticos.`);
+	        }
+	    }
+	
+	    if (viaticos.value.length > 0) {
+	        console.log('[generatePDF] Completed generating separate PDFs for all viáticos.');
+	    }
+	};
         // ----------------------------------
         // End Component: Visor PDF Management
         // ----------------------------------
