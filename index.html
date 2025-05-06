@@ -24,7 +24,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v2</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v3</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -295,8 +295,8 @@
             <div class="pc pc1 w0 h0">
                 <img class="bi x0 y0 w1 h1" alt="" src="assets/bg1.png?v=1" />
                 <div class="c x1 y1 w2 h2">
-                    <div class="t m0 x2 h3 y2 ff1 fs0 fc0 sc0 ls0 ws0">FORMATO DE AUTORIZACIÓN, SOLICITUD DE TRÁMITE Y AUTOLIQUIDACIÓN DE COMISIONES</div>
-                    <div class="t m0 x2 h3 y3 ff1 fs0 fc0 sc0 ls0 ws0">DE SERVICIOS Y SALIDAS DE CAMPO AL INTERIOR DEL PAÍS DE CATEDRÁTICOS, DOCENTES</div>
+                    <div class="t m0 x2 h3 y2 ff1 fs0 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.nombreTercero || '' }}</div>
+                    <div class="t m0 x2 h3 y3 ff1 fs0 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.tipoTercero || '' }}</div>
                     <div class="t m0 x3 h3 y4 ff1 fs0 fc0 sc0 ls0 ws0">CAPACITADORES E INVESTIGADORES</div>
                 </div>
                 <!-- ... Rest of pf1 template content ... -->
@@ -310,8 +310,8 @@
             <div class="pc pc2 w18 h23">
                 <img class="bi x0 y0 w19 h24" alt="" src="assets/bg2.png?v=1" />
                 <div class="c x2e y68 w1a h25">
-                    <div class="t m0 x2f h26 y69 ff1 fs4 fc0 sc0 ls0 ws0">FORMATO DE AUTORIZACIÓN SOLICITUD DE TRÁMITE Y LIQUIDACIÓN DE COMISIÓN DE</div>
-                    <div class="t m0 x5 h26 y6a ff1 fs4 fc0 sc0 ls0 ws0">SERVICIOS, GASTOS DE TRANSPORTE, GASTOS DE DESPLAZAMIENTO Y AUXILIO ECONÓMICO DE</div>
+                    <div class="t m0 x2f h26 y69 ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.nombreTercero || '' }}</div>
+                    <div class="t m0 x5 h26 y6a ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.tipoTercero || '' }}</div>
                     <div class="t m0 x30 h26 y6b ff1 fs4 fc0 sc0 ls0 ws0">DESPLAZAMIENTO</div>
                 </div>
                 <!-- ... Rest of pf2 template content ... -->
@@ -325,8 +325,8 @@
             <div class="pc pc3 w18 h23">
                 <img class="bi x0 y0 w19 h24" alt="" src="assets/bg3.png?v=1" />
                 <div class="c x2e y68 w1a h25">
-                    <div class="t m0 x2f h26 y69 ff1 fs4 fc0 sc0 ls0 ws0">FORMATO DE AUTORIZACIÓN SOLICITUD DE TRÁMITE Y LIQUIDACIÓN DE COMISIÓN DE</div>
-                    <div class="t m0 x5 h26 y6a ff1 fs4 fc0 sc0 ls0 ws0">SERVICIOS, GASTOS DE TRANSPORTE, GASTOS DE DESPLAZAMIENTO Y AUXILIO ECONÓMICO DE</div>
+                    <div class="t m0 x2f h26 y69 ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.nombreTercero || '' }}</div>
+                    <div class="t m0 x5 h26 y6a ff1 fs4 fc0 sc0 ls0 ws0">{{ viatico?.tercero?.tipoTercero || '' }}</div>
                     <div class="t m0 x30 h26 y6b ff1 fs4 fc0 sc0 ls0 ws0">DESPLAZAMIENTO</div>
                 </div>
                 <!-- ... Rest of pf3 template content ... -->
