@@ -513,7 +513,10 @@
     <script src="https://visjs.github.io/vis-timeline/standalone/umd/vis-timeline-graph2d.min.js"></script>    
     <!-- Include jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Add JSZip and FileSaver.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
 <!-- ---------------------------------- -->
 <!-- Component: JavaScript and Vue app initialization -->
@@ -2199,9 +2202,28 @@ const app = createApp({
 	        return;
 	    }
 	
-	    const { jsPDF } = window.jspdf;
+	    if (typeof JSZip !== 'function') {
+	        console.error('[generatePDF] JSZip is not loaded.');
+	        alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
+	        return;
+	    }
 	
-	    for (let index = 0; index < viaticos.value.length; index++) {
+	    if (typeof saveAs !== 'function') {
+	        console.error('[generatePDF] FileSaver.js is not loaded.');
+	        alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
+	        return;
+	    }
+	
+	    const { jsPDF } = window.jspdf;
+	    const zip = new JSZip();
+	    let pdfCount = 0;
+	
+	    // Sort viáticos by tercero.nombreTercero to ensure consistent numbering
+	    const sortedViaticos = [...viaticos.value].sort((a, b) =>
+	        a.tercero.nombreTercero.localeCompare(b.tercero.nombreTercero)
+	    );
+	
+	    for (let index = 0; index < sortedViaticos.length; index++) {
 	        const pageElement = document.getElementById(`pf1-${index}`);
 	        if (!pageElement) {
 	            console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
@@ -2237,21 +2259,37 @@ const app = createApp({
 	            doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
 	
-	            // Generate a unique filename for each viático
-	            const terceroName = viaticos.value[index].tercero.nombreTercero.replace(/\s+/g, '_');
-	            const startDate = viaticos.value[index].event.startDate.replace(/\//g, '-');
-	            const filename = `comision_servicios_${terceroName}_${startDate}_${index + 1}.pdf`;
+	            // Generate unique filename
+	            const terceroName = sortedViaticos[index].tercero.nombreTercero.replace(/\s+/g, '_');
+	            const destinoCity = sortedViaticos[index].event.ciudadDestino.replace(/\s+/g, '_');
+	            const startDate = sortedViaticos[index].event.startDate.split('/').join('-');
+	            const paddedIndex = String(index + 1).padStart(2, '0');
+	            const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
 	
-	            doc.save(filename);
-	            console.log(`[generatePDF] Saved PDF: ${filename}`);
+	            // Convert PDF to blob and add to ZIP
+	            const pdfBlob = doc.output('blob');
+	            zip.file(filename, pdfBlob);
+	            pdfCount++;
+	            console.log(`[generatePDF] Added to ZIP: ${filename}`);
 	        } catch (error) {
 	            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}:`, error);
 	            alert(`Error al generar el PDF para el viático ${index + 1}: ${error.message}. Continuando con los demás viáticos.`);
 	        }
 	    }
 	
-	    if (viaticos.value.length > 0) {
-	        console.log('[generatePDF] Completed generating separate PDFs for all viáticos.');
+	    if (pdfCount > 0) {
+	        try {
+	            // Generate ZIP file and trigger download
+	            const zipBlob = await zip.generateAsync({ type: 'blob' });
+	            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
+	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs.');
+	        } catch (error) {
+	            console.error('[generatePDF] Error generating ZIP file:', error);
+	            alert('Error al generar el archivo ZIP: ' + error.message);
+	        }
+	    } else {
+	        console.warn('[generatePDF] No valid PDFs generated for ZIP.');
+	        alert('No se generaron PDFs válidos para incluir en el ZIP.');
 	    }
 	};
         // ----------------------------------
