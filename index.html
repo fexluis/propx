@@ -14,7 +14,33 @@
     <link rel="stylesheet" href="assets/main.css?v=1.2"/>
 	<link rel="stylesheet" href="assets/styles.css?v=1.2"/>
     <style>
+	.loading-modal {
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+	  backdrop-filter: blur(5px); /* Blur effect for background */
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  z-index: 9999; /* Ensure it appears above other content */
+	}
 	
+	.loading-spinner {
+	  width: 50px;
+	  height: 50px;
+	  border: 5px solid #f3f3f3; /* Light gray border */
+	  border-top: 5px solid #3498db; /* Blue spinner */
+	  border-radius: 50%;
+	  animation: spin 1s linear infinite; /* Continuous rotation */
+	}
+	
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
     </style>
 </head>
 <body class="bg-gray-50">
@@ -26,7 +52,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico 3-pf1-v4</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico 3-pf1-v5</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -288,6 +314,9 @@
         <!-- ---------------------------------- -->
         <!-- Component: Visor PDF -->
         <!-- ---------------------------------- -->
+	<div v-if="isGeneratingPDF" class="loading-modal">
+	    <div class="loading-spinner"></div>
+	</div>
         <div id="visorPDF" class="flex-1" v-show="showVisorPDF">
             
                 <!-- Generar PDF Button -->
@@ -455,8 +484,6 @@
 		    </div>
 		    <div class="pi" data-data='{"ctm":[1.000000,0.000000,0.000000,1.000000,0.000000,0.000000]}'></div>
 		</div>
-                
-                <div class="loading-indicator"></div>
             
         </div>
         <!-- ---------------------------------- -->
@@ -655,6 +682,7 @@ const app = createApp({
             programming: false,
             eventLimit: false
         });
+        const isGeneratingPDF = ref(false); // Added for loading modal
         // ----------------------------------
         // End Component: State management
         // ----------------------------------
@@ -1057,7 +1085,7 @@ const app = createApp({
                                     html: `
                                         <div class="flex flex-col items-center">
                                             <span class="fc-day-name">${dayName}</span>
-                                            <span class="fc-day-number">${dayNumber}</span>
+                                            <spandiscovery://show-file-explorer?path=/home/user/projects/vue-app/src/App.vue class="fc-day-number">${dayNumber}</span>
                                         </div>
                                     `
                                 };
@@ -2190,126 +2218,132 @@ const app = createApp({
         };
 
         const generatePDF = async () => {
-	    if (viaticos.value.length === 0) {
-	        console.warn('[generatePDF] No viáticos available for PDF generation.');
-	        alert('No hay viáticos para generar el PDF.');
-	        return;
-	    }
-	
-	    if (typeof window.html2canvas !== 'function') {
-	        console.error('[generatePDF] html2canvas is not loaded.');
-	        alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-	        return;
-	    }
-	
-	    if (typeof JSZip !== 'function') {
-	        console.error('[generatePDF] JSZip is not loaded.');
-	        alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
-	        return;
-	    }
-	
-	    if (typeof saveAs !== 'function') {
-	        console.error('[generatePDF] FileSaver.js is not loaded.');
-	        alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
-	        return;
-	    }
-	
-	    const { jsPDF } = window.jspdf;
-	    const zip = new JSZip();
-	    let pdfCount = 0;
-	
-	    // Sort viáticos by tercero.nombreTercero for consistent numbering
-	    const sortedViaticos = [...viaticos.value].sort((a, b) =>
-	        a.tercero.nombreTercero.localeCompare(b.tercero.nombreTercero)
-	    );
-	
-	    // Define letter size in pixels at 72 DPI
-	    const letterWidthPx = 612; // 8.5 inches * 72 DPI
-	    const letterHeightPx = 792; // 11 inches * 72 DPI
-	
-	    for (let index = 0; index < sortedViaticos.length; index++) {
-	        const pageElement = document.getElementById(`pf1-${index}`);
-	        if (!pageElement) {
-	            console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
-	            continue;
-	        }
-	
-	        try {
-	            // Create a new jsPDF instance for each viático with letter size
-	            const doc = new jsPDF({
-	                orientation: 'portrait',
-	                unit: 'px',
-	                format: [letterWidthPx, letterHeightPx],
-	                compression: true
-	            });
-	
-	            const originalDisplay = pageElement.style.display;
-	            pageElement.style.display = 'block';
-	
-	            // Calculate scale to fit letter size with intermediate quality
-	            const elementWidth = pageElement.offsetWidth;
-	            const elementHeight = pageElement.offsetHeight;
-	            const scale = Math.min(letterWidthPx / elementWidth, letterHeightPx / elementHeight) * 1.5; // Increased to 1.5 for better quality
-	
-	            const canvas = await window.html2canvas(pageElement, {
-	                scale: scale,
-	                useCORS: true,
-	                logging: true,
-	                width: elementWidth,
-	                height: elementHeight,
-	                windowWidth: elementWidth,
-	                windowHeight: elementHeight
-	            });
-	
-	            pageElement.style.display = originalDisplay;
-	
-	            // Convert canvas to JPEG with higher quality (0.9)
-	            const imgData = canvas.toDataURL('image/jpeg', 0.9); // 90% quality
-	            const imgProps = doc.getImageProperties(imgData);
-	            const pdfWidth = doc.internal.pageSize.getWidth();
-	            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-	
-	            // Add image with medium compression
-	            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
-	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
-	
-	            // Generate unique filename
-	            const terceroName = sortedViaticos[index].tercero.nombreTercero.replace(/\s+/g, '_');
-	            const destinoCity = sortedViaticos[index].event.ciudadDestino.replace(/\s+/g, '_');
-	            const startDate = sortedViaticos[index].event.startDate.split('/').join('-');
-	            const paddedIndex = String(index + 1).padStart(2, '0');
-	            const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
-	
-	            // Convert PDF to blob and add to ZIP
-	            const pdfBlob = doc.output('blob');
-	            zip.file(filename, pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
-	            pdfCount++;
-	            console.log(`[generatePDF] Added to ZIP: ${filename}, size: ${(pdfBlob.size / 1024 / 1024).toFixed(2)} MB`);
-	        } catch (error) {
-	            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}:`, error);
-	            alert(`Error al generar el PDF para el viático ${index + 1}: ${error.message}. Continuando con los demás viáticos.`);
-	        }
-	    }
-	
-	    if (pdfCount > 0) {
-	        try {
-	            // Generate ZIP file with compression and trigger download
-	            const zipBlob = await zip.generateAsync({
-	                type: 'blob',
-	                compression: 'DEFLATE',
-	                compressionOptions: { level: 6 }
-	            });
-	            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
-	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
-	        } catch (error) {
-	            console.error('[generatePDF] Error generating ZIP file:', error);
-	            alert('Error al generar el archivo ZIP: ' + error.message);
-	        }
-	    } else {
-	        console.warn('[generatePDF] No valid PDFs generated for ZIP.');
-	        alert('No se generaron PDFs válidos para incluir en el ZIP.');
-	    }
-	};
+            if (viaticos.value.length === 0) {
+                console.warn('[generatePDF] No viáticos available for PDF generation.');
+                alert('No hay viáticos para generar el PDF.');
+                return;
+            }
+
+            if (typeof window.html2canvas !== 'function') {
+                console.error('[generatePDF] html2canvas is not loaded.');
+                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+                return;
+            }
+
+            if (typeof JSZip !== 'function') {
+                console.error('[generatePDF] JSZip is not loaded.');
+                alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
+                return;
+            }
+
+            if (typeof saveAs !== 'function') {
+                console.error('[generatePDF] FileSaver.js is not loaded.');
+                alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
+                return;
+            }
+
+            isGeneratingPDF.value = true; // Show loading modal
+            console.log('[generatePDF] Started PDF generation, showing loading modal.');
+
+            const { jsPDF } = window.jspdf;
+            const zip = new JSZip();
+            let pdfCount = 0;
+
+            // Sort viáticos by tercero.nombreTercero for consistent numbering
+            const sortedViaticos = [...viaticos.value].sort((a, b) =>
+                a.tercero.nombreTercero.localeCompare(b.tercero.nombreTercero)
+            );
+
+            // Define letter size in pixels at 72 DPI
+            const letterWidthPx = 612; // 8.5 inches * 72 DPI
+            const letterHeightPx = 792; // 11 inches * 72 DPI
+
+            for (let index = 0; index < sortedViaticos.length; index++) {
+                const pageElement = document.getElementById(`pf1-${index}`);
+                if (!pageElement) {
+                    console.warn(`[generatePDF] Page element pf1-${index} not found. Skipping.`);
+                    continue;
+                }
+
+                try {
+                    // Create a new jsPDF instance for each viático with letter size
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'px',
+                        format: [letterWidthPx, letterHeightPx],
+                        compression: true
+                    });
+
+                    const originalDisplay = pageElement.style.display;
+                    pageElement.style.display = 'block';
+
+                    // Calculate scale for higher quality (~400 KB target)
+                    const elementWidth = pageElement.offsetWidth;
+                    const elementHeight = pageElement.offsetHeight;
+                    const scale = Math.min(letterWidthPx / elementWidth, letterHeightPx / elementHeight) * 2.0; // Increased to 2.0
+
+                    const canvas = await window.html2canvas(pageElement, {
+                        scale: scale,
+                        useCORS: true,
+                        logging: true,
+                        width: elementWidth,
+                        height: elementHeight,
+                        windowWidth: elementWidth,
+                        windowHeight: elementHeight
+                    });
+
+                    pageElement.style.display = originalDisplay;
+
+                    // Convert canvas to JPEG with high quality (0.95)
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95); // 95% quality
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                    // Add image with medium compression
+                    doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
+                    console.log(`[generatePDF] Generated PDF for viático ${index + 1}.`);
+
+                    // Generate unique filename
+                    const terceroName = sortedViaticos[index].tercero.nombreTercero.replace(/\s+/g, '_');
+                    const destinoCity = sortedViaticos[index].event.ciudadDestino.replace(/\s+/g, '_');
+                    const startDate = sortedViaticos[index].event.startDate.split('/').join('-');
+                    const paddedIndex = String(index + 1).padStart(2, '0');
+                    const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
+
+                    // Convert PDF to blob and add to ZIP
+                    const pdfBlob = doc.output('blob');
+                    zip.file(filename, pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                    pdfCount++;
+                    console.log(`[generatePDF] Added to ZIP: ${filename}, size: ${(pdfBlob.size / 1024).toFixed(2)} KB`);
+                } catch (error) {
+                    console.error(`[generatePDF] Error generating PDF for viático ${index + 1}:`, error);
+                    alert(`Error al generar el PDF para el viático ${index + 1}: ${error.message}. Continuando con los demás viáticos.`);
+                }
+            }
+
+            if (pdfCount > 0) {
+                try {
+                    // Generate ZIP file with compression and trigger download
+                    const zipBlob = await zip.generateAsync({
+                        type: 'blob',
+                        compression: 'DEFLATE',
+                        compressionOptions: { level: 6 }
+                    });
+                    saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
+                    console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
+                } catch (error) {
+                    console.error('[generatePDF] Error generating ZIP file:', error);
+                    alert('Error al generar el archivo ZIP: ' + error.message);
+                }
+            } else {
+                console.warn('[generatePDF] No valid PDFs generated for ZIP.');
+                alert('No se generaron PDFs válidos para incluir en el ZIP.');
+            }
+
+            isGeneratingPDF.value = false; // Hide loading modal
+            console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
+        };
         // ----------------------------------
         // End Component: Visor PDF Management
         // ----------------------------------
@@ -2421,104 +2455,108 @@ const app = createApp({
         // ----------------------------------
         // End Component: Lifecycle Hooks
         // ----------------------------------
-
+        
         // ----------------------------------
         // Component: Exposed methods and properties
         // ----------------------------------
         return {
+            // State
             currentView,
-            setView,
-            navigate,
-            goToToday,
-            getTitle,
-            limitEvents,
-            toggleEventLimit,
+            calendarApi,
+            events,
             showModal,
             currentEvent,
-            form,
             error,
             dateRangePicker,
-            saveEvent,
-            closeModal,
-            deleteEvent,
-            handleTransporteInput,
-            handleRutaAdicionalInput,
-            handleDescriptionInput,
-            createViaticoObject,
-            viaticos,
+            limitEvents,
+            form,
             showProgrammingModal,
-            openProgrammingModal,
-            closeProgrammingModal,
             programmingDateRangePicker,
+            programmingRange,
             programmingEventsJson,
-            generateProgrammingJson,
             showTercerosModal,
-            openTercerosModal,
-            closeTercerosModal,
             terceros,
             searchQuery,
             showOptions,
-            filteredTerceros,
-            filterTerceros,
-            selectTercero,
-            hideOptions,
+            currentTercero,
             showTerceroForm,
+            terceroForm,
+            showPeriodoModal,
+            periodos,
+            currentPeriodo,
+            periodoForm,
+            showTimeline,
+            timelineContainer,
+            timelineModalState,
+            viaticos,
+            showVisorPDF,
+            disabledButtons,
+            isGeneratingPDF, // Added for loading modal
+            // Computed
+            filteredTerceros,
+            filteredOrigenCities,
+            filteredDestinoCities,
+            uniquePeriodos,
+            filteredPeriodos,
+            getSelectedSemesters,
+            // Methods
+            navigate,
+            setView,
+            goToToday,
+            toggleEventLimit,
+            updateTitle,
+            renderEvents,
+            reinitializeCalendar,
+            openModal,
+            closeModal,
+            saveEvent,
+            deleteEvent,
+            computeViatico,
+            formatTransporte,
+            handleTransporteInput,
+            handleRutaAdicionalInput,
+            handleDescriptionInput,
+            openProgrammingModal,
+            closeProgrammingModal,
+            generateProgrammingJson,
+            openTercerosModal,
+            closeTercerosModal,
             openTerceroForm,
             closeTerceroForm,
-            terceroForm,
-            currentTercero,
             editTercero,
             saveTercero,
             deleteTercero,
-            cities,
-            origenQuery,
-            destinoQuery,
-            showOrigenOptions,
-            showDestinoOptions,
-            filteredOrigenCities,
-            filteredDestinoCities,
+            filterTerceros,
+            selectTercero,
+            hideOptions,
+            loadCities,
             filterOrigenCities,
             filterDestinoCities,
             selectOrigenCity,
             selectDestinoCity,
             hideOrigenOptions,
             hideDestinoOptions,
-            showPeriodoModal,
             openPeriodoModal,
             closePeriodoModal,
-            periodos,
-            currentPeriodo,
-            periodoForm,
-            showPeriodoForm,
             openPeriodoForm,
             closePeriodoForm,
-            getSelectedSemesters,
-            getAsignaturasForSemester,
-            toggleAllSemesters,
-            savePeriodo,
             editPeriodo,
+            savePeriodo,
             deletePeriodo,
-            selectedPeriodos,
-            periodoFilter,
-            centroFilter,
-            uniquePeriodos,
-            filteredPeriodos,
+            toggleAllSemesters,
             applyFilters,
             showCronogramaTimeline,
-            showTimeline,
             toggleTimeline,
-            timelineContainer,
-            timelineModalState,
+            formatDateRange,
+            formatDate,
+            parseDate,
+            initializeTimeline,
             closeTimelineModal,
             handleTimelineModalSubmit,
-            showVisorPDF,
+            debugViaticos,
             toggleVisorPDF,
             generatePDF,
-            computeViatico,
-            computeViaticoForProgramming,
-            reinitializeCalendar,
-            disabledButtons,
-            debugViaticos
+            getAsignaturasForSemester
         };
         // ----------------------------------
         // End Component: Exposed methods and properties
@@ -2528,8 +2566,5 @@ const app = createApp({
 
 app.mount('#app');
 </script>
-<!-- ---------------------------------- -->
-<!-- End Component: JavaScript and Vue app initialization -->
-<!-- ---------------------------------- -->
 </body>
 </html>
