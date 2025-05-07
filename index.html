@@ -24,7 +24,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v7</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v8</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -858,6 +858,15 @@ const app = createApp({
             // Calculate total days (inclusive of start and end dates)
             const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
+            // Debug log for startDate, endDate, totalDays, and duracion
+            console.log('[computeViaticoDetails] Viático Debug:', {
+                tercero: viatico.tercero.nombreTercero,
+                startDate: viatico.event.startDate,
+                endDate: viatico.event.endDate,
+                totalDays: totalDays,
+                duracion: viatico.duracion
+            });
+
             // Apply logic for viaticoDiaPernoctados and viaticoDiaNoPernoctados based on totalDays
             let viaticoDiaPernoctados, viaticoDiaNoPernoctados;
             if (totalDays === 1) {
@@ -1322,7 +1331,13 @@ const app = createApp({
 
             const startDate = new Date(eventData.startDate);
             const endDate = new Date(eventData.endDate);
-            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+            // Adjust endDate for inclusive calculation (FullCalendar's endDate is exclusive)
+            const adjustedEndDate = new Date(endDate);
+            adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
+
+            // Calculate total days (inclusive of start and adjusted end dates)
+            const totalDays = Math.floor((adjustedEndDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
             // Apply logic for duracion based on totalDays
             let duracion;
@@ -1339,11 +1354,12 @@ const app = createApp({
                 duracion = totalDays > 1 ? totalDays - 0.5 : totalDays / 2;
             }
 
-	    // Debug log for startDate, endDate, totalDays, and duracion
+            // Debug log for startDate, endDate, totalDays, and duracion
             console.log('[createViaticoObject] Viático Debug:', {
                 tercero: tercero.nombreTercero,
                 startDate: eventData.startDate,
                 endDate: eventData.endDate,
+                adjustedEndDate: adjustedEndDate.toISOString(),
                 totalDays: totalDays,
                 duracion: duracion
             });
@@ -1381,7 +1397,7 @@ const app = createApp({
                 },
                 event: {
                     startDate: formatDate(eventData.startDate),
-                    endDate: formatDate(eventData.endDate),
+                    endDate: formatDate(adjustedEndDate), // Use adjustedEndDate for consistency
                     description: eventData.description || '',
                     transporte: eventData.transporte || '0',
                     itinerario: eventData.rutaAdicional || '',
@@ -1421,7 +1437,7 @@ const app = createApp({
 
         const handleDescriptionInput = (event) => {
             let value = event.target.value;
-            value = value.replace(/[^a-zA-Z0-9\-\s]/g, '');
+            value = value.replace(/[^a-zAZ0-9\-\s]/g, '');
             if (value.length > 120) {
                 value = value.substring(0, 120);
             }
