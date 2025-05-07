@@ -444,7 +444,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-<!-- JavaScript and Vue app initialization -->
+
+<!-- ---------------------------------- -->
+<!-- Component: script -->
+<!-- ---------------------------------- -->
 <script>
 // ----------------------------------
 // Component: Vue Setup and Imports
@@ -1369,16 +1372,8 @@ const app = createApp({
                 return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
             };
 
-            const calculateCost = (duration, cityCategory) => {
-                const rates = {
-                    1: 150000,
-                    2: 200000,
-                    3: 250000
-                };
-                return duration * (rates[cityCategory] || 150000);
-            };
-
-            return {
+            // Construct partial viatico object for computeViaticoDetails
+            const viatico = {
                 dependencia: DEPENDENCIA,
                 currentDate: formatDate(new Date('2025-05-04')),
                 duracion: duracion,
@@ -1393,19 +1388,27 @@ const app = createApp({
                     tipoCuenta: tercero.props.tipoCuenta,
                     tipoTercero: tercero.props.tipoTercero,
                     cuentaBancaria: tercero.props.cuentaBancaria,
-                    props: tercero.props // Include props for baseLiquidacion access
+                    props: tercero.props
                 },
                 event: {
                     startDate: formatDate(eventData.startDate),
-                    endDate: formatDate(adjustedEndDate), // Use adjustedEndDate for consistency
+                    endDate: formatDate(adjustedEndDate),
                     description: eventData.description || '',
                     transporte: eventData.transporte || '0',
                     itinerario: eventData.rutaAdicional || '',
                     ciudadDestino: destinoCity.nombreCiudad,
                     ciudadDestinoDepartamento: destinoCity.departamento
                 },
-                cost: calculateCost(duracion, destinoCity.categoria),
                 eventId: eventData.id
+            };
+
+            // Calculate cost using computeViaticoDetails
+            const cost = computeViaticoDetails(viatico).viaticoTotal;
+
+            // Return complete viatico object with updated cost
+            return {
+                ...viatico,
+                cost: cost
             };
         };
         // ----------------------------------
@@ -1436,32 +1439,32 @@ const app = createApp({
         };
 
         const handleDescriptionInput = (event) => {
-	    const input = event.target;
-	    let value = input.value;
-	    
-	    // Store current cursor position
-	    const start = input.selectionStart;
-	    const end = input.selectionEnd;
-	    
-	    // Remove invalid characters (allow a-z, A-Z, 0-9, hyphen, space)
-	    value = value.replace(/[^a-zA-Z0-9\s-]/g, '');
-	    
-	    // Enforce 120-character limit
-	    if (value.length > 120) {
-	        value = value.substring(0, 120);
-	    }
-	    
-	    // Convert to uppercase
-	    value = value.toUpperCase();
-	    
-	    // Update reactive form value
-	    form.value.description = value;
-	    
-	    // Restore cursor position in next tick to avoid reactivity issues
-	    nextTick(() => {
-	        input.setSelectionRange(start, end);
-	    });
-	};
+        const input = event.target;
+        let value = input.value;
+        
+        // Store current cursor position
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        
+        // Remove invalid characters (allow a-z, A-Z, 0-9, hyphen, space)
+        value = value.replace(/[^a-zA-Z0-9\s-]/g, '');
+        
+        // Enforce 120-character limit
+        if (value.length > 120) {
+            value = value.substring(0, 120);
+        }
+        
+        // Convert to uppercase
+        value = value.toUpperCase();
+        
+        // Update reactive form value
+        form.value.description = value;
+        
+        // Restore cursor position in next tick to avoid reactivity issues
+        nextTick(() => {
+            input.setSelectionRange(start, end);
+        });
+    };
         // ----------------------------------
         // End Component: Event Modal Input Formatting
         // ----------------------------------
@@ -1774,152 +1777,152 @@ const app = createApp({
         };
 
         const generatePDF = async () => {
-	    if (viaticos.value.length === 0) {
-	        console.warn('[generatePDF] No viáticos available for PDF generation.');
-	        alert('No hay viáticos para generar el PDF.');
-	        return;
-	    }
-	
-	    if (typeof window.html2canvas !== 'function') {
-	        console.error('[generatePDF] html2canvas is not loaded.');
-	        alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-	        return;
-	    }
-	
-	    if (typeof JSZip !== 'function') {
-	        console.error('[generatePDF] JSZip is not loaded.');
-	        alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
-	        return;
-	    }
-	
-	    if (typeof saveAs !== 'function') {
-	        console.error('[generatePDF] FileSaver.js is not loaded.');
-	        alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
-	        return;
-	    }
-	
-	    isGeneratingPDF.value = true;
-	    console.log('[generatePDF] Started PDF generation, showing loading modal.');
-	    console.log('[generatePDF] Viaticos:', viaticos.value.map(v => ({
-	        index: v.eventId,
-	        nombreTercero: v.tercero.nombreTercero,
-	        tipoTercero: v.tercero.tipoTercero,
-	        expectedElement: v.tercero.tipoTercero === 'CATEDRATICO' ? `pf1-${v.eventId}` : v.tercero.tipoTercero === 'SERVIDOR' ? `pf2-${v.eventId}` : `pf3-${v.eventId}`
-	    })));
-	
-	    const { jsPDF } = window.jspdf;
-	    const zip = new JSZip();
-	    let pdfCount = 0;
-	
-	    // Define letter size in pixels at 72 DPI
-	    const letterWidthPx = 612;
-	    const letterHeightPx = 792;
-	
-	    // Generate PDFs in parallel
-	    const pdfPromises = viaticos.value.map(async (viatico, index) => {
-	        let templateId;
-	        switch (viatico.tercero.tipoTercero) {
-	            case 'CATEDRATICO':
-	                templateId = `pf1-${index}`;
-	                break;
-	            case 'SERVIDOR':
-	                templateId = `pf2-${index}`;
-	                break;
-	            case 'CONTRATISTA':
-	                templateId = `pf3-${index}`;
-	                break;
-	            default:
-	                console.warn(`[generatePDF] Unknown tipoTercero for viático ${index}: ${viatico.tercero.tipoTercero}. Skipping.`);
-	                return null;
-	        }
-	
-	        const pageElement = document.getElementById(templateId);
-	        if (!pageElement) {
-	            console.warn(`[generatePDF] Page element ${templateId} not found for viático ${index}. Skipping.`);
-	            return null;
-	        }
-	
-	        try {
-	            const doc = new jsPDF({
-	                orientation: 'portrait',
-	                unit: 'px',
-	                format: [letterWidthPx, letterHeightPx],
-	                compression: true
-	            });
-	
-	            const originalDisplay = pageElement.style.display;
-	            pageElement.style.display = 'block';
-	
-	            const elementWidth = pageElement.offsetWidth;
-	            const elementHeight = pageElement.offsetHeight;
-	
-	            const canvas = await window.html2canvas(pageElement, {
-	                scale: 2.5, // Increase scale for higher resolution
-	                useCORS: true,
-	                logging: true,
-	                width: elementWidth,
-	                height: elementHeight,
-	                windowWidth: elementWidth,
-	                windowHeight: elementHeight
-	            });
-	
-	            pageElement.style.display = originalDisplay;
-	
-	            const imgData = canvas.toDataURL('image/jpeg', 0.90); // Increase JPEG quality to 90% for better visuals
-	            const pdfWidth = doc.internal.pageSize.getWidth();
-	            const pdfHeight = doc.internal.pageSize.getHeight();
-	
-	            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW'); // Use SLOW compression for better quality
-	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}, template: ${templateId}.`);
-	
-	            const terceroName = viatico.tercero.nombreTercero.replace(/\s+/g, '_');
-	            const destinoCity = viatico.event.ciudadDestino.replace(/\s+/g, '_');
-	            const startDate = viatico.event.startDate.split('/').join('-');
-	            const paddedIndex = String(index + 1).padStart(2, '0');
-	            const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
-	
-	            const pdfBlob = doc.output('blob');
-	            console.log(`[generatePDF] PDF size for ${filename}: ${(pdfBlob.size / 1024).toFixed(2)} KB`);
-	            return { filename, pdfBlob };
-	        } catch (error) {
-	            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}, template ${templateId}:`, error);
-	            return null;
-	        }
-	    });
-	
-	    // Wait for all PDFs to be generated
-	    const pdfResults = await Promise.all(pdfPromises);
-	
-	    // Add valid PDFs to ZIP
-	    pdfResults.forEach(result => {
-	        if (result) {
-	            zip.file(result.filename, result.pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
-	            pdfCount++;
-	            console.log(`[generatePDF] Added to ZIP: ${result.filename}, size: ${(result.pdfBlob.size / 1024).toFixed(2)} KB`);
-	        }
-	    });
-	
-	    if (pdfCount > 0) {
-	        try {
-	            const zipBlob = await zip.generateAsync({
-	                type: 'blob',
-	                compression: 'DEFLATE',
-	                compressionOptions: { level: 6 }
-	            });
-	            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
-	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
-	        } catch (error) {
-	            console.error('[generatePDF] Error generating ZIP file:', error);
-	            alert('Error al generar el archivo ZIP: ' + error.message);
-	        }
-	    } else {
-	        console.warn('[generatePDF] No valid PDFs generated for ZIP.');
-	        alert('No se generaron PDFs válidos para incluir en el ZIP.');
-	    }
-	
-	    isGeneratingPDF.value = false;
-	    console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
-	};
+        if (viaticos.value.length === 0) {
+            console.warn('[generatePDF] No viáticos available for PDF generation.');
+            alert('No hay viáticos para generar el PDF.');
+            return;
+        }
+    
+        if (typeof window.html2canvas !== 'function') {
+            console.error('[generatePDF] html2canvas is not loaded.');
+            alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+            return;
+        }
+    
+        if (typeof JSZip !== 'function') {
+            console.error('[generatePDF] JSZip is not loaded.');
+            alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
+            return;
+        }
+    
+        if (typeof saveAs !== 'function') {
+            console.error('[generatePDF] FileSaver.js is not loaded.');
+            alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
+            return;
+        }
+    
+        isGeneratingPDF.value = true;
+        console.log('[generatePDF] Started PDF generation, showing loading modal.');
+        console.log('[generatePDF] Viaticos:', viaticos.value.map(v => ({
+            index: v.eventId,
+            nombreTercero: v.tercero.nombreTercero,
+            tipoTercero: v.tercero.tipoTercero,
+            expectedElement: v.tercero.tipoTercero === 'CATEDRATICO' ? `pf1-${v.eventId}` : v.tercero.tipoTercero === 'SERVIDOR' ? `pf2-${v.eventId}` : `pf3-${v.eventId}`
+        })));
+    
+        const { jsPDF } = window.jspdf;
+        const zip = new JSZip();
+        let pdfCount = 0;
+    
+        // Define letter size in pixels at 72 DPI
+        const letterWidthPx = 612;
+        const letterHeightPx = 792;
+    
+        // Generate PDFs in parallel
+        const pdfPromises = viaticos.value.map(async (viatico, index) => {
+            let templateId;
+            switch (viatico.tercero.tipoTercero) {
+                case 'CATEDRATICO':
+                    templateId = `pf1-${index}`;
+                    break;
+                case 'SERVIDOR':
+                    templateId = `pf2-${index}`;
+                    break;
+                case 'CONTRATISTA':
+                    templateId = `pf3-${index}`;
+                    break;
+                default:
+                    console.warn(`[generatePDF] Unknown tipoTercero for viático ${index}: ${viatico.tercero.tipoTercero}. Skipping.`);
+                    return null;
+            }
+    
+            const pageElement = document.getElementById(templateId);
+            if (!pageElement) {
+                console.warn(`[generatePDF] Page element ${templateId} not found for viático ${index}. Skipping.`);
+                return null;
+            }
+    
+            try {
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [letterWidthPx, letterHeightPx],
+                    compression: true
+                });
+    
+                const originalDisplay = pageElement.style.display;
+                pageElement.style.display = 'block';
+    
+                const elementWidth = pageElement.offsetWidth;
+                const elementHeight = pageElement.offsetHeight;
+    
+                const canvas = await window.html2canvas(pageElement, {
+                    scale: 2.5, // Increase scale for higher resolution
+                    useCORS: true,
+                    logging: true,
+                    width: elementWidth,
+                    height: elementHeight,
+                    windowWidth: elementWidth,
+                    windowHeight: elementHeight
+                });
+    
+                pageElement.style.display = originalDisplay;
+    
+                const imgData = canvas.toDataURL('image/jpeg', 0.90); // Increase JPEG quality to 90% for better visuals
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = doc.internal.pageSize.getHeight();
+    
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW'); // Use SLOW compression for better quality
+                console.log(`[generatePDF] Generated PDF for viático ${index + 1}, template: ${templateId}.`);
+    
+                const terceroName = viatico.tercero.nombreTercero.replace(/\s+/g, '_');
+                const destinoCity = viatico.event.ciudadDestino.replace(/\s+/g, '_');
+                const startDate = viatico.event.startDate.split('/').join('-');
+                const paddedIndex = String(index + 1).padStart(2, '0');
+                const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
+    
+                const pdfBlob = doc.output('blob');
+                console.log(`[generatePDF] PDF size for ${filename}: ${(pdfBlob.size / 1024).toFixed(2)} KB`);
+                return { filename, pdfBlob };
+            } catch (error) {
+                console.error(`[generatePDF] Error generating PDF for viático ${index + 1}, template ${templateId}:`, error);
+                return null;
+            }
+        });
+    
+        // Wait for all PDFs to be generated
+        const pdfResults = await Promise.all(pdfPromises);
+    
+        // Add valid PDFs to ZIP
+        pdfResults.forEach(result => {
+            if (result) {
+                zip.file(result.filename, result.pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                pdfCount++;
+                console.log(`[generatePDF] Added to ZIP: ${result.filename}, size: ${(result.pdfBlob.size / 1024).toFixed(2)} KB`);
+            }
+        });
+    
+        if (pdfCount > 0) {
+            try {
+                const zipBlob = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+                saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
+                console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
+            } catch (error) {
+                console.error('[generatePDF] Error generating ZIP file:', error);
+                alert('Error al generar el archivo ZIP: ' + error.message);
+            }
+        } else {
+            console.warn('[generatePDF] No valid PDFs generated for ZIP.');
+            alert('No se generaron PDFs válidos para incluir en el ZIP.');
+        }
+    
+        isGeneratingPDF.value = false;
+        console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
+    };
         // ----------------------------------
         // End Component: Visor PDF Management
         // ----------------------------------
@@ -2166,7 +2169,7 @@ const app = createApp({
             REDONDEAR,
             formatCurrency,
             computeViaticoDetails,
-            addTestEvents // Expose the new method
+            addTestEvents
         };
         // ----------------------------------
         // End Component: Exposed methods and properties
@@ -2176,7 +2179,7 @@ const app = createApp({
 app.mount('#app');
 </script>
 <!-- ---------------------------------- -->
-<!-- End Component: JavaScript and Vue app initialization -->
+<!-- End Component: script -->
 <!-- ---------------------------------- -->
 </body>
 </html>
