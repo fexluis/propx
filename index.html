@@ -1542,111 +1542,111 @@ const app = createApp({
         };
 
         const generateProgrammingJson = () => {
-	    console.log('[generateProgrammingJson] Starting...');
-	    console.log('[generateProgrammingJson] Initial state:', {
-	        tercerosCount: terceros.value.length,
-	        citiesCount: cities.value.length,
-	        eventsCount: events.value.length,
-	        programmingRange: programmingRange.value,
-	        viaticosCount: viaticos.value.length
-	    });
-	
-	    if (!terceros.value.length || !cities.value.length) {
-	        console.error('[generateProgrammingJson] Error: Terceros or cities not loaded.');
-	        alert('Error: Terceros o ciudades no están cargados.');
-	        return;
-	    }
-	
-	    if (!programmingRange.value.start || !programmingRange.value.end) {
-	        console.warn('[generateProgrammingJson] No date range selected.');
-	        alert('Por favor, selecciona un rango de fechas.');
-	        return;
-	    }
-	
-	    console.log('[generateProgrammingJson] Computing viáticos...');
-	    computeViaticoForProgramming();
-	
-	    console.log('[generateProgrammingJson] Viaticos after computation:', {
-	        count: viaticos.value.length,
-	        details: viaticos.value.map(v => ({
-	            eventId: v.eventId,
-	            tercero: v.tercero.nombreTercero,
-	            startDate: v.event.startDate,
-	            endDate: v.event.endDate,
-	            destino: v.event.ciudadDestino,
-	            cost: v.cost
-	        }))
-	    });
-	
-	    const startDate = new Date(programmingRange.value.start);
-	    const endDate = new Date(programmingRange.value.end);
-	    endDate.setDate(endDate.getDate() + 1); // Include end date
-	
-	    console.log('[generateProgrammingJson] Filtering events for JSON...', {
-	        startDate: startDate.toISOString(),
-	        endDate: endDate.toISOString()
-	    });
-	
-	    const filteredEvents = events.value.filter(event => {
-	        const eventStart = new Date(event.startDate);
-	        const isWithinRange = eventStart >= startDate && eventStart <= endDate;
-	        const hasRequiredFields = event.terceroId && event.destino;
-	        console.log('[generateProgrammingJson] Event filter:', {
-	            eventId: event.id,
-	            startDate: event.startDate,
-	            isWithinRange,
-	            hasTercero: !!event.terceroId,
-	            hasDestino: !!event.destino,
-	            included: isWithinRange && hasRequiredFields
-	        });
-	        return isWithinRange && hasRequiredFields;
-	    });
-	
-	    console.log('[generateProgrammingJson] Filtered events for JSON:', filteredEvents.map(e => ({
-	        id: e.id,
-	        startDate: e.startDate,
-	        terceroId: e.terceroId,
-	        destino: e.destino
-	    })));
-	
-	    const eventsWithViatico = filteredEvents.map(event => {
-	        const viatico = viaticos.value.find(v => v.eventId === event.id);
-	        console.log('[generateProgrammingJson] Mapping event:', {
-	            eventId: event.id,
-	            hasViatico: !!viatico,
-	            viatico: viatico ? {
-	                tercero: viatico.tercero.nombreTercero,
-	                startDate: viatico.event.startDate,
-	                destino: viatico.event.ciudadDestino
-	            } : null
-	        });
-	        return {
-	            ...event,
-	            viatico: viatico || null
-	        };
-	    });
-	
-	    programmingEventsJson.value = JSON.stringify(eventsWithViatico, null, 2);
-	    console.log('[generateProgrammingJson] Generated JSON:', programmingEventsJson.value);
-	
-	    // Force reactivity update
-	    programmingEventsJson.value = reactive(programmingEventsJson.value);
-	    viaticos.value = [...viaticos.value]; // Force reactivity
-	
-	    // Close modal and toggle Visor PDF
-	    showProgrammingModal.value = false;
-	    nextTick(() => {
-	        console.log('[generateProgrammingJson] Toggling Visor PDF...');
-	        if (showVisorPDF.value) {
-	            toggleVisorPDF(); // Briefly toggle off
-	            nextTick(() => toggleVisorPDF()); // Toggle back on
-	        } else {
-	            toggleVisorPDF();
-	        }
-	        debugViaticos();
-	        console.log('[generateProgrammingJson] Completed.');
-	    });
-	};
+            console.log('[generateProgrammingJson] Starting...');
+            console.log('[generateProgrammingJson] Initial state:', {
+                tercerosCount: terceros.value.length,
+                citiesCount: cities.value.length,
+                eventsCount: events.value.length,
+                programmingRange: programmingRange.value,
+                viaticosCount: viaticos.value.length
+            });
+
+            if (!terceros.value.length || !cities.value.length) {
+                console.error('[generateProgrammingJson] Error: Terceros or cities not loaded.');
+                alert('Error: Terceros o ciudades no están cargados.');
+                return;
+            }
+
+            if (!programmingRange.value.start || !programmingRange.value.end) {
+                console.warn('[generateProgrammingJson] No date range selected.');
+                alert('Por favor, selecciona un rango de fechas.');
+                return;
+            }
+
+            console.log('[generateProgrammingJson] Computing viáticos...');
+            computeViaticoForProgramming();
+
+            console.log('[generateProgrammingJson] Viaticos after computation:', {
+                count: viaticos.value.length,
+                details: viaticos.value.map(v => ({
+                    eventId: v.eventId,
+                    tercero: v.tercero.nombreTercero,
+                    startDate: v.event.startDate,
+                    endDate: v.event.endDate,
+                    destino: v.event.ciudadDestino,
+                    cost: v.cost
+                }))
+            });
+
+            const startDate = new Date(programmingRange.value.start);
+            const endDate = new Date(programmingRange.value.end);
+            endDate.setDate(endDate.getDate() + 1); // Include end date
+
+            console.log('[generateProgrammingJson] Filtering events for JSON...', {
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+            });
+
+            const filteredEvents = events.value.filter(event => {
+                const eventStart = new Date(event.startDate);
+                const isWithinRange = eventStart >= startDate && eventStart <= endDate;
+                const hasRequiredFields = event.terceroId && event.destino;
+                console.log('[generateProgrammingJson] Event filter:', {
+                    eventId: event.id,
+                    startDate: event.startDate,
+                    isWithinRange,
+                    hasTercero: !!event.terceroId,
+                    hasDestino: !!event.destino,
+                    included: isWithinRange && hasRequiredFields
+                });
+                return isWithinRange && hasRequiredFields;
+            });
+
+            console.log('[generateProgrammingJson] Filtered events for JSON:', filteredEvents.map(e => ({
+                id: e.id,
+                startDate: e.startDate,
+                terceroId: e.terceroId,
+                destino: e.destino
+            })));
+
+            const eventsWithViatico = filteredEvents.map(event => {
+                const viatico = viaticos.value.find(v => v.eventId === event.id);
+                console.log('[generateProgrammingJson] Mapping event:', {
+                    eventId: event.id,
+                    hasViatico: !!viatico,
+                    viatico: viatico ? {
+                        tercero: viatico.tercero.nombreTercero,
+                        startDate: viatico.event.startDate,
+                        destino: viatico.event.ciudadDestino
+                    } : null
+                });
+                return {
+                    ...event,
+                    viatico: viatico || null
+                };
+            });
+
+            programmingEventsJson.value = JSON.stringify(eventsWithViatico, null, 2);
+            console.log('[generateProgrammingJson] Generated JSON:', programmingEventsJson.value);
+
+            // Force reactivity update
+            programmingEventsJson.value = reactive(programmingEventsJson.value);
+            viaticos.value = [...viaticos.value]; // Force reactivity
+
+            // Close modal and toggle Visor PDF
+            showProgrammingModal.value = false;
+            nextTick(() => {
+                console.log('[generateProgrammingJson] Toggling Visor PDF...');
+                if (showVisorPDF.value) {
+                    toggleVisorPDF(); // Briefly toggle off
+                    nextTick(() => toggleVisorPDF()); // Toggle back on
+                } else {
+                    toggleVisorPDF();
+                }
+                debugViaticos();
+                console.log('[generateProgrammingJson] Completed.');
+            });
+        };
 
         const openProgrammingModal = () => {
             if (showTimeline.value || showVisorPDF.value) return;
@@ -1702,208 +1702,262 @@ const app = createApp({
         // Component: Visor PDF Management
         // ----------------------------------
         const debugViaticos = () => {
-	    console.log('[debugViaticos] Debugging viaticos...');
-	    console.log('[debugViaticos] Viaticos count:', viaticos.value.length);
-	    viaticos.value.forEach((viatico, index) => {
-	        console.log(`[debugViaticos] Viatico ${index}:`, {
-	            tercero: viatico.tercero.nombreTercero,
-	            tipoTercero: viatico.tercero.tipoTercero,
-	            startDate: viatico.event.startDate,
-	            endDate: viatico.event.endDate,
-	            destino: viatico.event.ciudadDestino,
-	            eventId: viatico.eventId,
-	            cost: viatico.cost
-	        });
-	        ['pf1', 'pf2', 'pf3'].forEach(prefix => {
-	            const element = document.getElementById(`${prefix}-${index}`);
-	            console.log(`[debugViaticos] Element ${prefix}-${index} exists:`, !!element);
-	        });
-	    });
-	};
+            console.log('[debugViaticos] Debugging viaticos...');
+            console.log('[debugViaticos] Viaticos count:', viaticos.value.length);
+            viaticos.value.forEach((viatico, index) => {
+                console.log(`[debugViaticos] Viatico ${index}:`, {
+                    tercero: viatico.tercero.nombreTercero,
+                    tipoTercero: viatico.tercero.tipoTercero,
+                    startDate: viatico.event.startDate,
+                    endDate: viatico.event.endDate,
+                    destino: viatico.event.ciudadDestino,
+                    eventId: viatico.eventId,
+                    cost: viatico.cost
+                });
+                ['pf1', 'pf2', 'pf3'].forEach(prefix => {
+                    const element = document.getElementById(`${prefix}-${index}`);
+                    console.log(`[debugViaticos] Element ${prefix}-${index} exists:`, !!element);
+                });
+            });
+        };
 
         const toggleVisorPDF = () => {
-	    showVisorPDF.value = !showVisorPDF.value;
-	    showTimeline.value = false;
-	
-	    const calendarEl = document.getElementById('calendar');
-	    const timelineEl = document.getElementById('timeline');
-	    const visorPDFEl = document.getElementById('visorPDF');
-	
-	    if (showVisorPDF.value) {
-	        if (calendarEl) calendarEl.classList.add('hidden');
-	        if (timelineEl) timelineEl.classList.add('hidden');
-	        if (visorPDFEl) visorPDFEl.classList.remove('hidden');
-	        nextTick(() => {
-	            viaticos.value = [...viaticos.value]; // Force reactivity
-	            debugViaticos();
-	        });
-	    } else {
-	        if (calendarEl) calendarEl.classList.remove('hidden');
-	        if (timelineEl) timelineEl.classList.add('hidden');
-	        if (visorPDFEl) visorPDFEl.classList.add('hidden');
-	        nextTick(() => {
-	            if (calendarApi.value) {
-	                calendarApi.value.render();
-	                renderEvents();
-	                calendarApi.value.updateSize();
-	            } else {
-	                reinitializeCalendar();
-	            }
-	        });
-	    }
-	    updateButtonStates();
-	};
+            showVisorPDF.value = !showVisorPDF.value;
+            showTimeline.value = false;
 
-	const generatePDF = async () => {
-	    if (viaticos.value.length === 0) {
-	        console.warn('[generatePDF] No viáticos available for PDF generation.');
-	        alert('No hay viáticos para generar el PDF.');
-	        return;
-	    }
-	
-	    if (typeof window.html2canvas !== 'function') {
-	        console.error('[generatePDF] html2canvas is not loaded.');
-	        alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-	        return;
-	    }
-	
-	    if (typeof JSZip !== 'function') {
-	        console.error('[generatePDF] JSZip is not loaded.');
-	        alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
-	        return;
-	    }
-	
-	    if (typeof saveAs !== 'function') {
-	        console.error('[generatePDF] FileSaver.js is not loaded.');
-	        alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
-	        return;
-	    }
-	
-	    isGeneratingPDF.value = true;
-	    console.log('[generatePDF] Started PDF generation, showing loading modal.');
-	    console.log('[generatePDF] Viaticos:', viaticos.value.map(v => ({
-	        index: v.eventId,
-	        nombreTercero: v.tercero.nombreTercero,
-	        tipoTercero: v.tercero.tipoTercero,
-	        expectedElement: v.tercero.tipoTercero === 'CATEDRATICO' ? `pf1-${v.eventId}` : v.tercero.tipoTercero === 'SERVIDOR' ? `pf2-${v.eventId}` : `pf3-${v.eventId}`
-	    })));
-	
-	    const { jsPDF } = window.jspdf;
-	    const zip = new JSZip();
-	    let pdfCount = 0;
-	
-	    // Define letter size in pixels at 72 DPI
-	    const letterWidthPx = 612;
-	    const letterHeightPx = 792;
-	
-	    // Generate PDFs in parallel
-	    const pdfPromises = viaticos.value.map(async (viatico, index) => {
-	        let templateId;
-	        switch (viatico.tercero.tipoTercero) {
-	            case 'CATEDRATICO':
-	                templateId = `pf1-${index}`;
-	                break;
-	            case 'SERVIDOR':
-	                templateId = `pf2-${index}`;
-	                break;
-	            case 'CONTRATISTA':
-	                templateId = `pf3-${index}`;
-	                break;
-	            default:
-	                console.warn(`[generatePDF] Unknown tipoTercero for viático ${index}: ${viatico.tercero.tipoTercero}. Skipping.`);
-	                return null;
-	        }
-	
-	        const pageElement = document.getElementById(templateId);
-	        if (!pageElement) {
-	            console.warn(`[generatePDF] Page element ${templateId} not found for viático ${index}. Skipping.`);
-	            return null;
-	        }
-	
-	        try {
-	            const doc = new jsPDF({
-	                orientation: 'portrait',
-	                unit: 'px',
-	                format: [letterWidthPx, letterHeightPx],
-	                compression: true
-	            });
-	
-	            const originalDisplay = pageElement.style.display;
-	            pageElement.style.display = 'block';
-	
-	            const elementWidth = pageElement.offsetWidth;
-	            const elementHeight = pageElement.offsetHeight;
-	            const scale = Math.min(letterWidthPx / elementWidth, letterHeightPx / elementHeight);
-	
-	            const canvas = await window.html2canvas(pageElement, {
-	                scale: scale,
-	                useCORS: true,
-	                logging: true,
-	                width: elementWidth,
-	                height: elementHeight,
-	                windowWidth: elementWidth,
-	                windowHeight: elementHeight
-	            });
-	
-	            pageElement.style.display = originalDisplay;
-	
-	            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-	            const imgProps = doc.getImageProperties(imgData);
-	            const pdfWidth = doc.internal.pageSize.getWidth();
-	            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-	
-	            doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
-	            console.log(`[generatePDF] Generated PDF for viático ${index + 1}, template: ${templateId}.`);
-	
-	            const terceroName = viatico.tercero.nombreTercero.replace(/\s+/g, '_');
-	            const destinoCity = viatico.event.ciudadDestino.replace(/\s+/g, '_');
-	            const startDate = viatico.event.startDate.split('/').join('-');
-	            const paddedIndex = String(index + 1).padStart(2, '0');
-	            const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
-	
-	            const pdfBlob = doc.output('blob');
-	            return { filename, pdfBlob };
-	        } catch (error) {
-	            console.error(`[generatePDF] Error generating PDF for viático ${index + 1}, template ${templateId}:`, error);
-	            return null;
-	        }
-	    });
-	
-	    // Wait for all PDFs to be generated
-	    const pdfResults = await Promise.all(pdfPromises);
-	
-	    // Add valid PDFs to ZIP
-	    pdfResults.forEach(result => {
-	        if (result) {
-	            zip.file(result.filename, result.pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
-	            pdfCount++;
-	            console.log(`[generatePDF] Added to ZIP: ${result.filename}, size: ${(result.pdfBlob.size / 1024).toFixed(2)} KB`);
-	        }
-	    });
-	
-	    if (pdfCount > 0) {
-	        try {
-	            const zipBlob = await zip.generateAsync({
-	                type: 'blob',
-	                compression: 'DEFLATE',
-	                compressionOptions: { level: 6 }
-	            });
-	            saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
-	            console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
-	        } catch (error) {
-	            console.error('[generatePDF] Error generating ZIP file:', error);
-	            alert('Error al generar el archivo ZIP: ' + error.message);
-	        }
-	    } else {
-	        console.warn('[generatePDF] No valid PDFs generated for ZIP.');
-	        alert('No se generaron PDFs válidos para incluir en el ZIP.');
-	    }
-	
-	    isGeneratingPDF.value = false;
-	    console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
-	};
+            const calendarEl = document.getElementById('calendar');
+            const timelineEl = document.getElementById('timeline');
+            const visorPDFEl = document.getElementById('visorPDF');
+
+            if (showVisorPDF.value) {
+                if (calendarEl) calendarEl.classList.add('hidden');
+                if (timelineEl) timelineEl.classList.add('hidden');
+                if (visorPDFEl) visorPDFEl.classList.remove('hidden');
+                nextTick(() => {
+                    viaticos.value = [...viaticos.value]; // Force reactivity
+                    debugViaticos();
+                });
+            } else {
+                if (calendarEl) calendarEl.classList.remove('hidden');
+                if (timelineEl) timelineEl.classList.add('hidden');
+                if (visorPDFEl) visorPDFEl.classList.add('hidden');
+                nextTick(() => {
+                    if (calendarApi.value) {
+                        calendarApi.value.render();
+                        renderEvents();
+                        calendarApi.value.updateSize();
+                    } else {
+                        reinitializeCalendar();
+                    }
+                });
+            }
+            updateButtonStates();
+        };
+
+        const generatePDF = async () => {
+            if (viaticos.value.length === 0) {
+                console.warn('[generatePDF] No viáticos available for PDF generation.');
+                alert('No hay viáticos para generar el PDF.');
+                return;
+            }
+
+            if (typeof window.html2canvas !== 'function') {
+                console.error('[generatePDF] html2canvas is not loaded.');
+                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+                return;
+            }
+
+            if (typeof JSZip !== 'function') {
+                console.error('[generatePDF] JSZip is not loaded.');
+                alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
+                return;
+            }
+
+            if (typeof saveAs !== 'function') {
+                console.error('[generatePDF] FileSaver.js is not loaded.');
+                alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
+                return;
+            }
+
+            isGeneratingPDF.value = true;
+            console.log('[generatePDF] Started PDF generation, showing loading modal.');
+            console.log('[generatePDF] Viaticos:', viaticos.value.map(v => ({
+                index: v.eventId,
+                nombreTercero: v.tercero.nombreTercero,
+                tipoTercero: v.tercero.tipoTercero,
+                expectedElement: v.tercero.tipoTercero === 'CATEDRATICO' ? `pf1-${v.eventId}` : v.tercero.tipoTercero === 'SERVIDOR' ? `pf2-${v.eventId}` : `pf3-${v.eventId}`
+            })));
+
+            const { jsPDF } = window.jspdf;
+            const zip = new JSZip();
+            let pdfCount = 0;
+
+            // Define letter size in pixels at 72 DPI
+            const letterWidthPx = 612;
+            const letterHeightPx = 792;
+
+            // Generate PDFs in parallel
+            const pdfPromises = viaticos.value.map(async (viatico, index) => {
+                let templateId;
+                switch (viatico.tercero.tipoTercero) {
+                    case 'CATEDRATICO':
+                        templateId = `pf1-${index}`;
+                        break;
+                    case 'SERVIDOR':
+                        templateId = `pf2-${index}`;
+                        break;
+                    case 'CONTRATISTA':
+                        templateId = `pf3-${index}`;
+                        break;
+                    default:
+                        console.warn(`[generatePDF] Unknown tipoTercero for viático ${index}: ${viatico.tercero.tipoTercero}. Skipping.`);
+                        return null;
+                }
+
+                const pageElement = document.getElementById(templateId);
+                if (!pageElement) {
+                    console.warn(`[generatePDF] Page element ${templateId} not found for viático ${index}. Skipping.`);
+                    return null;
+                }
+
+                try {
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'px',
+                        format: [letterWidthPx, letterHeightPx],
+                        compression: true
+                    });
+
+                    const originalDisplay = pageElement.style.display;
+                    pageElement.style.display = 'block';
+
+                    const elementWidth = pageElement.offsetWidth;
+                    const elementHeight = pageElement.offsetHeight;
+                    const scale = Math.min(letterWidthPx / elementWidth, letterHeightPx / elementHeight);
+
+                    const canvas = await window.html2canvas(pageElement, {
+                        scale: scale,
+                        useCORS: true,
+                        logging: true,
+                        width: elementWidth,
+                        height: elementHeight,
+                        windowWidth: elementWidth,
+                        windowHeight: elementHeight
+                    });
+
+                    pageElement.style.display = originalDisplay;
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                    doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'MEDIUM');
+                    console.log(`[generatePDF] Generated PDF for viático ${index + 1}, template: ${templateId}.`);
+
+                    const terceroName = viatico.tercero.nombreTercero.replace(/\s+/g, '_');
+                    const destinoCity = viatico.event.ciudadDestino.replace(/\s+/g, '_');
+                    const startDate = viatico.event.startDate.split('/').join('-');
+                    const paddedIndex = String(index + 1).padStart(2, '0');
+                    const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
+
+                    const pdfBlob = doc.output('blob');
+                    return { filename, pdfBlob };
+                } catch (error) {
+                    console.error(`[generatePDF] Error generating PDF for viático ${index + 1}, template ${templateId}:`, error);
+                    return null;
+                }
+            });
+
+            // Wait for all PDFs to be generated
+            const pdfResults = await Promise.all(pdfPromises);
+
+            // Add valid PDFs to ZIP
+            pdfResults.forEach(result => {
+                if (result) {
+                    zip.file(result.filename, result.pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                    pdfCount++;
+                    console.log(`[generatePDF] Added to ZIP: ${result.filename}, size: ${(result.pdfBlob.size / 1024).toFixed(2)} KB`);
+                }
+            });
+
+            if (pdfCount > 0) {
+                try {
+                    const zipBlob = await zip.generateAsync({
+                        type: 'blob',
+                        compression: 'DEFLATE',
+                        compressionOptions: { level: 6 }
+                    });
+                    saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
+                    console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
+                } catch (error) {
+                    console.error('[generatePDF] Error generating ZIP file:', error);
+                    alert('Error al generar el archivo ZIP: ' + error.message);
+                }
+            } else {
+                console.warn('[generatePDF] No valid PDFs generated for ZIP.');
+                alert('No se generaron PDFs válidos para incluir en el ZIP.');
+            }
+
+            isGeneratingPDF.value = false;
+            console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
+        };
         // ----------------------------------
         // End Component: Visor PDF Management
+        // ----------------------------------
+
+        // ----------------------------------
+        // Component: Test Events Management
+        // ----------------------------------
+        const addTestEvents = () => {
+            console.log('[addTestEvents] Adding test events...');
+            const testEvents = [
+                {
+                    id: 'test1',
+                    title: 'Juan Pérez',
+                    startDate: '2025-05-09T00:00:00',
+                    endDate: '2025-05-10T00:00:00',
+                    terceroId: '1',
+                    destino: '1',
+                    color: '#3b82f6',
+                    viatica: true,
+                    transporte: '20000',
+                    origen: '1'
+                },
+                {
+                    id: 'test2',
+                    title: 'Carlos López',
+                    startDate: '2025-05-16T00:00:00',
+                    endDate: '2025-05-17T00:00:00',
+                    terceroId: '3',
+                    destino: '2',
+                    color: '#3b82f6',
+                    viatica: true,
+                    transporte: '20000',
+                    origen: '2'
+                }
+            ];
+
+            // Clear existing events (optional, depending on test requirements)
+            // events.value = [];
+
+            // Add test events
+            testEvents.forEach(event => {
+                if (!events.value.some(e => e.id === event.id)) {
+                    events.value.push(event);
+                    console.log(`[addTestEvents] Added event: ${event.title} (ID: ${event.id})`);
+                } else {
+                    console.log(`[addTestEvents] Event with ID ${event.id} already exists, skipping.`);
+                }
+            });
+
+            // Save to localStorage and render events
+            localStorage.setItem('academicEvents', JSON.stringify(events.value));
+            renderEvents();
+            console.log('[addTestEvents] Test events added, total events:', events.value.length);
+        };
+        // ----------------------------------
+        // End Component: Test Events Management
         // ----------------------------------
 
         // ----------------------------------
@@ -2093,42 +2147,15 @@ const app = createApp({
             toggleTimeline,
             REDONDEAR,
             formatCurrency,
-            computeViaticoDetails // Expose for template usage
+            computeViaticoDetails,
+            addTestEvents // Expose the new method
         };
         // ----------------------------------
         // End Component: Exposed methods and properties
         // ----------------------------------
     }
 });
-
 app.mount('#app');
-
-// Add Test Events:
-events.value.push({
-    id: 'test1',
-    title: 'Juan Pérez',
-    startDate: '2025-05-09T00:00:00',
-    endDate: '2025-05-10T00:00:00',
-    terceroId: '1',
-    destino: '1',
-    color: '#3b82f6',
-    viatica: true,
-    transporte: '20000',
-    origen: '1'
-});
-events.value.push({
-    id: 'test2',
-    title: 'Carlos López',
-    startDate: '2025-05-16T00:00:00',
-    endDate: '2025-05-17T00:00:00',
-    terceroId: '3',
-    destino: '2',
-    color: '#3b82f6',
-    viatica: true,
-    transporte: '20000',
-    origen: '2'
-});
-localStorage.setItem('academicEvents', JSON.stringify(events.value));
 </script>
 <!-- ---------------------------------- -->
 <!-- End Component: JavaScript and Vue app initialization -->
