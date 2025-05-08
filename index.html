@@ -496,100 +496,118 @@ const CityDataSource = async () => {
 // ----------------------------------
 const app = createApp({
     setup() {
-        // ----------------------------------
-        // Component: State management
-        // ----------------------------------
-        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const currentView = ref('dayGridMonth');
-        const calendarApi = ref(null);
-        const events = ref(JSON.parse(localStorage.getItem('academicEvents')) || []);
-        const showModal = ref(false);
-        const currentEvent = ref(null);
-        const error = ref(null);
-        const dateRangePicker = ref(null);
-        const limitEvents = ref(true);
-        const form = ref({
-            title: '',
-            description: '',
-            startDate: '',
-            endDate: '',
-            color: '#3b82f6',
-            terceroId: '',
-            viatica: true,
-            transporte: '',
-            origen: '',
-            destino: '',
-            rutaAdicional: ''
-        });
-        const showProgrammingModal = ref(false);
-        const programmingDateRangePicker = ref(null);
-        const programmingRange = ref({ start: '', end: '' });
-        const programmingEventsJson = ref(null);
-        const showTercerosModal = ref(false);
-        const terceros = ref([]);
-        const searchQuery = ref('');
-        const showOptions = ref(false);
-        const currentTercero = ref(null);
-        const showTerceroForm = ref(false);
-        const terceroForm = ref({
-            id: '',
-            ccTercero: '',
-            nombreTercero: '',
-            inicialTercero: '',
-            tipoDocumentoTercero: '03',
-            numeroDocumentoTercero: '',
-            props: {
-                tipoTercero: 'CONTRATISTA',
-                baseLiquidacion: '',
-                cargoServidor: 'Servidor',
-                entidadBancaria: 'BANCOLOMBIA',
-                cuentaBancaria: '',
-                tipoCuenta: 'Ahorro',
-                telefono: '',
-                correo: '',
-                fechaNacimiento: '',
-                contrato: ''
-            }
-        });
-        let flatpickrInstance = null;
-        let programmingFlatpickrInstance = null;
-        const showPeriodoModal = ref(false);
-        const periodos = ref(JSON.parse(localStorage.getItem('periodos')) || []);
-        const currentPeriodo = ref(null);
-        const periodoForm = ref({
-            periodo: '2025-1',
-            centro: 'CALI',
-            programa: 'ADMINISTRACION PUBLICA',
-            semestres: Array(10).fill(false),
-            asignaturas: {}
-        });
-        const showTimeline = ref(false);
-        const timelineContainer = ref(null);
-        let timeline = null;
-        const timelineModalState = reactive({
-            isOpen: false,
-            action: 'add',
-            eventData: { id: '', content: '', group: '', start: '', end: '' }
-        });
-        const DEPENDENCIA = "0072DP - DECANATURA PREGRADO";
-        const viaticos = ref([]);
-        const isGeneratingPDF = ref(false);    
-        const showVisorPDF = ref(false);
-        const disabledButtons = ref({
-            month: false,
-            week: false,
-            today: false,
-            periodo: false,
-            timeline: false,
-            visorPDF: false,
-            terceros: false,
-            programming: false,
-            eventLimit: false
-        });
-        // ----------------------------------
-        // End Component: State management
-        // ----------------------------------
+// ----------------------------------
+// Component: State management
+// ----------------------------------
+const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const currentView = ref('dayGridMonth');
+const calendarApi = ref(null);
+const events = ref(JSON.parse(localStorage.getItem('academicEvents')) || []);
+const showModal = ref(false);
+const currentEvent = ref(null);
+const error = ref(null);
+const dateRangePicker = ref(null);
+const limitEvents = ref(true);
 
+// Define estadoViatico mapping
+const estadoViaticoColors = {
+    'CREADO': '#3b82f6',
+    'NO-VIATICA': '#D3D3D3',
+    'ANULADA': '#800080',
+    'REINTEGRO': '#D8BFD8',
+    'SIN-LEGALIZAR': '#FFFF00',
+    'EN-APROBACION': '#00FFFF',
+    'LEGALIZADO': '#FFA500',
+    'PAGADO': '#008000'
+};
+
+const form = ref({
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    estadoViatico: 'CREADO', // Changed from color to estadoViatico
+    terceroId: '',
+    viatica: true,
+    transporte: '',
+    origen: '',
+    destino: '',
+    rutaAdicional: ''
+});
+
+const showProgrammingModal = ref(false);
+const programmingDateRangePicker = ref(null);
+const programmingRange = ref({ start: '', end: '' });
+const programmingEventsJson = ref(null);
+const showTercerosModal = ref(false);
+const terceros = ref([]);
+const searchQuery = ref('');
+const showOptions = ref(false);
+const currentTercero = ref(null);
+const showTerceroForm = ref(false);
+const terceroForm = ref({
+    id: '',
+    ccTercero: '',
+    nombreTercero: '',
+    inicialTercero: '',
+    tipoDocumentoTercero: '03',
+    numeroDocumentoTercero: '',
+    props: {
+        tipoTercero: 'CONTRATISTA',
+        baseLiquidacion: '',
+        cargoServidor: 'Servidor',
+        entidadBancaria: 'BANCOLOMBIA',
+        cuentaBancaria: '',
+        tipoCuenta: 'Ahorro',
+        telefono: '',
+        correo: '',
+        fechaNacimiento: '',
+        contrato: ''
+    }
+});
+let flatpickrInstance = null;
+let programmingFlatpickrInstance = null;
+const showPeriodoModal = ref(false);
+const periodos = ref(JSON.parse(localStorage.getItem('periodos')) || []);
+const currentPeriodo = ref(null);
+const periodoForm = ref({
+    periodo: '2025-1',
+    centro: 'CALI',
+    programa: 'ADMINISTRACION PUBLICA',
+    semestres: Array(10).fill(false),
+    asignaturas: {}
+});
+const showTimeline = ref(false);
+const timelineContainer = ref(null);
+let timeline = null;
+const timelineModalState = reactive({
+    isOpen: false,
+    action: 'add',
+    eventData: { id: '', content: '', group: '', start: '', end: '' }
+});
+const DEPENDENCIA = "0072DP - DECANATURA PREGRADO";
+const viaticos = ref([]);
+const isGeneratingPDF = ref(false);    
+const showVisorPDF = ref(false);
+const disabledButtons = ref({
+    month: false,
+    week: false,
+    today: false,
+    periodo: false,
+    timeline: false,
+    visorPDF: false,
+    terceros: false,
+    programming: false,
+    eventLimit: false
+});
+const cities = ref([]);
+const origenQuery = ref('');
+const destinoQuery = ref('');
+const showOrigenOptions = ref(false);
+const showDestinoOptions = ref(false);
+// ----------------------------------
+// End Component: State management
+// ----------------------------------
         // ----------------------------------
         // Component: Button State Management
         // ----------------------------------
@@ -918,505 +936,512 @@ const app = createApp({
         // End Component: Viáticos Calculation Functions
         // ----------------------------------
 
-        // ----------------------------------
-        // Component: Calendar Management
-        // ----------------------------------
-        const getTitle = () => {
-            if (!calendarApi.value) return '';
-            const view = calendarApi.value.view;
-            if (view.type === 'dayGridMonth') {
-                const date = view.currentStart;
-                return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-            } else if (view.type === 'dayGridWeek') {
-                const start = view.currentStart;
-                const end = view.currentEnd;
-                end.setDate(end.getDate() - 1);
-                if (start.getMonth() === end.getMonth()) {
-                    return `${start.getDate()} - ${end.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()}`;
-                } else if (start.getFullYear() === end.getFullYear()) {
-                    return `${start.getDate()} ${monthNames[start.getMonth()].substring(0, 3)} - ${end.getDate()} ${monthNames[end.getMonth()].substring(0, 3)} ${start.getFullYear()}`;
-                } else {
-                    return `${start.getDate()} ${monthNames[start.getMonth()].substring(0, 3)} ${start.getFullYear()} - ${end.getDate()} ${monthNames[end.getMonth()].substring(0, 3)} ${end.getFullYear()}`;
+// ----------------------------------
+// Component: Calendar Management
+// ----------------------------------
+const getTitle = () => {
+    if (!calendarApi.value) return '';
+    const view = calendarApi.value.view;
+    if (view.type === 'dayGridMonth') {
+        const date = view.currentStart;
+        return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    } else if (view.type === 'dayGridWeek') {
+        const start = view.currentStart;
+        const end = view.currentEnd;
+        end.setDate(end.getDate() - 1);
+        if (start.getMonth() === end.getMonth()) {
+            return `${start.getDate()} - ${end.getDate()} ${monthNames[start.getMonth()]} ${start.getFullYear()}`;
+        } else if (start.getFullYear() === end.getFullYear()) {
+            return `${start.getDate()} ${monthNames[start.getMonth()].substring(0, 3)} - ${end.getDate()} ${monthNames[end.getMonth()].substring(0, 3)} ${start.getFullYear()}`;
+        } else {
+            return `${start.getDate()} ${monthNames[start.getMonth()].substring(0, 3)} ${start.getFullYear()} - ${end.getDate()} ${monthNames[end.getMonth()].substring(0, 3)} ${end.getFullYear()}`;
+        }
+    }
+    return '';
+};
+
+const darkenColor = (color, percent) => {
+    if (!color) return '#3b82f6';
+    if (color.startsWith('#')) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.max(0, (num >> 16) - amt);
+        const G = Math.max(0, (num >> 8 & 0x00FF) - amt);
+        const B = Math.max(0, (num & 0x0000FF) - amt);
+        return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+    }
+    return '#2563eb';
+};
+
+const navigate = (direction) => {
+    if (!calendarApi.value || showTimeline.value || showVisorPDF.value) return;
+    if (direction === 'prev') calendarApi.value.prev();
+    else if (direction === 'next') calendarApi.value.next();
+    updateTitle();
+};
+
+const setView = (view) => {
+    if (showTimeline.value || showVisorPDF.value) return;
+    currentView.value = view;
+    if (calendarApi.value) {
+        calendarApi.value.changeView(view);
+        if (view === 'dayGridMonth') {
+            calendarApi.value.setOption('dayMaxEventRows', limitEvents.value ? 4 : false);
+            calendarApi.value.setOption('dayMaxEvents', limitEvents.value ? 4 : false);
+        } else if (view === 'dayGridWeek') {
+            calendarApi.value.setOption('dayMaxEventRows', false);
+            calendarApi.value.setOption('dayMaxEvents', false);
+        }
+        updateTitle();
+        updateButtonStates();
+    }
+};
+
+const goToToday = () => {
+    if (!calendarApi.value || showTimeline.value || showVisorPDF.value) return;
+    calendarApi.value.today();
+    setView(currentView.value);
+    updateTitle();
+};
+
+const toggleEventLimit = () => {
+    if (showTimeline.value || showVisorPDF.value) return;
+    limitEvents.value = !limitEvents.value;
+    if (calendarApi.value && currentView.value === 'dayGridMonth') {
+        calendarApi.value.setOption('dayMaxEventRows', limitEvents.value ? 4 : false);
+        calendarApi.value.setOption('dayMaxEvents', limitEvents.value ? 4 : false);
+    }
+    updateButtonStates();
+};
+
+const updateTitle = () => {
+    const titleElement = document.getElementById('calendar-title');
+    if (titleElement) titleElement.textContent = getTitle();
+};
+
+const renderEvents = () => {
+    if (!calendarApi.value || showTimeline.value || showVisorPDF.value) return;
+    try {
+        calendarApi.value.getEvents().forEach(event => event.remove());
+        events.value.forEach(event => {
+            const eventColor = estadoViaticoColors[event.estadoViatico] || '#3b82f6';
+            calendarApi.value.addEvent({
+                id: event.id,
+                title: event.title,
+                start: event.startDate,
+                end: event.endDate,
+                allDay: true,
+                backgroundColor: eventColor,
+                borderColor: darkenColor(eventColor, 20),
+                extendedProps: { 
+                    description: event.description || '',
+                    terceroId: event.terceroId || '',
+                    viatica: event.viatica || false,
+                    transporte: event.transporte || '',
+                    origen: event.origen || '',
+                    destino: event.destino || '',
+                    rutaAdicional: event.rutaAdicional || ''
                 }
-            }
-            return '';
-        };
+            });
+        });
+    } catch (error) {
+        console.error('Error in renderEvents:', error);
+    }
+};
 
-        const darkenColor = (color, percent) => {
-            if (!color) return '#3b82f6';
-            if (color.startsWith('#')) {
-                const num = parseInt(color.replace("#", ""), 16);
-                const amt = Math.round(2.55 * percent);
-                const R = Math.max(0, (num >> 16) - amt);
-                const G = Math.max(0, (num >> 8 & 0x00FF) - amt);
-                const B = Math.max(0, (num & 0x0000FF) - amt);
-                return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
-            }
-            return '#2563eb';
-        };
+const reinitializeCalendar = () => {
+    try {
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl) {
+            console.error('Calendar element not found');
+            return;
+        }
 
-        const navigate = (direction) => {
-            if (!calendarApi.value || showTimeline.value || showVisorPDF.value) return;
-            if (direction === 'prev') calendarApi.value.prev();
-            else if (direction === 'next') calendarApi.value.next();
-            updateTitle();
-        };
+        calendarEl.classList.remove('hidden');
+        calendarEl.style.height = '100%';
 
-        const setView = (view) => {
-            if (showTimeline.value || showVisorPDF.value) return;
-            currentView.value = view;
-            if (calendarApi.value) {
-                calendarApi.value.changeView(view);
-                if (view === 'dayGridMonth') {
-                    calendarApi.value.setOption('dayMaxEventRows', limitEvents.value ? 4 : false);
-                    calendarApi.value.setOption('dayMaxEvents', limitEvents.value ? 4 : false);
-                } else if (view === 'dayGridWeek') {
-                    calendarApi.value.setOption('dayMaxEventRows', false);
-                    calendarApi.value.setOption('dayMaxEvents', false);
+        const savedView = currentView.value;
+        const savedEvents = [...events.value];
+
+        if (calendarApi.value) {
+            calendarApi.value.destroy();
+            calendarApi.value = null;
+        }
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'es',
+            initialView: savedView,
+            headerToolbar: false,
+            firstDay: 1,
+            dayHeaderFormat: { weekday: 'long' },
+            height: '100%',
+            contentHeight: '100%',
+            eventClick: (info) => {
+                editEvent(info);
+            },
+            dateClick: function(info) {
+                openModal(info.dateStr);
+            },
+            eventDisplay: 'block',
+            eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+            eventDidMount: function(info) {
+                if (info.event.allDay && info.event.start && info.event.end) {
+                    const start = info.event.start;
+                    const end = info.event.end;
+                    const duration = (end - start) / (1000 * 60 * 60 * 24);
+                    if (duration > 1) {
+                        info.el.style.borderLeftWidth = '4px';
+                        info.el.style.borderLeftStyle = 'solid';
+                        info.el.style.borderLeftColor = darkenColor(info.event.backgroundColor, 20);
+                    }
                 }
-                updateTitle();
-                updateButtonStates();
-            }
-        };
-
-        const goToToday = () => {
-            if (!calendarApi.value || showTimeline.value || showVisorPDF.value) return;
-            calendarApi.value.today();
-            setView(currentView.value);
-            updateTitle();
-        };
-
-        const toggleEventLimit = () => {
-            if (showTimeline.value || showVisorPDF.value) return;
-            limitEvents.value = !limitEvents.value;
-            if (calendarApi.value && currentView.value === 'dayGridMonth') {
-                calendarApi.value.setOption('dayMaxEventRows', limitEvents.value ? 4 : false);
-                calendarApi.value.setOption('dayMaxEvents', limitEvents.value ? 4 : false);
-            }
-            updateButtonStates();
-        };
-
-        const updateTitle = () => {
-            const titleElement = document.getElementById('calendar-title');
-            if (titleElement) titleElement.textContent = getTitle();
-        };
-
-        const renderEvents = () => {
-            if (!calendarApi.value || showTimeline.value || showVisorPDF.value) return;
-            try {
-                calendarApi.value.getEvents().forEach(event => event.remove());
-                events.value.forEach(event => {
-                    calendarApi.value.addEvent({
-                        id: event.id,
-                        title: event.title,
-                        start: event.startDate,
-                        end: event.endDate,
-                        allDay: true,
-                        backgroundColor: event.color || '#3b82f6',
-                        borderColor: darkenColor(event.color, 20),
-                        extendedProps: { 
-                            description: event.description || '',
-                            terceroId: event.terceroId || '',
-                            viatica: event.viatica || false,
-                            transporte: event.transporte || '',
-                            origen: event.origen || '',
-                            destino: event.destino || '',
-                            rutaAdicional: event.rutaAdicional || ''
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error('Error in renderEvents:', error);
-            }
-        };
-
-        const reinitializeCalendar = () => {
-            try {
-                const calendarEl = document.getElementById('calendar');
-                if (!calendarEl) {
-                    console.error('Calendar element not found');
-                    return;
-                }
-
-                calendarEl.classList.remove('hidden');
-                calendarEl.style.height = '100%';
-
-                const savedView = currentView.value;
-                const savedEvents = [...events.value];
-
-                if (calendarApi.value) {
-                    calendarApi.value.destroy();
-                    calendarApi.value = null;
-                }
-
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    locale: 'es',
-                    initialView: savedView,
-                    headerToolbar: false,
-                    firstDay: 1,
-                    dayHeaderFormat: { weekday: 'long' },
-                    height: '100%',
-                    contentHeight: '100%',
-                    eventClick: (info) => {
-                        editEvent(info);
-                    },
-                    dateClick: function(info) {
-                        openModal(info.dateStr);
-                    },
-                    eventDisplay: 'block',
-                    eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-                    eventDidMount: function(info) {
-                        if (info.event.allDay && info.event.start && info.event.end) {
-                            const start = info.event.start;
-                            const end = info.event.end;
-                            const duration = (end - start) / (1000 * 60 * 60 * 24);
-                            if (duration > 1) {
-                                info.el.style.borderLeftWidth = '4px';
-                                info.el.style.borderLeftStyle = 'solid';
-                                info.el.style.borderLeftColor = darkenColor(info.event.backgroundColor, 20);
-                            }
-                        }
-                    },
+            },
+            dayHeaderContent: function(arg) {
+                const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
+                return { html: `<div>${dayName}</div>` };
+            },
+            views: {
+                dayGridMonth: {
+                    dayMaxEventRows: limitEvents.value ? 4 : false,
+                    dayMaxEvents: limitEvents.value ? 4 : false,
+                    fixedWeekCount: false,
+                    aspectRatio: 1.5
+                },
+                dayGridWeek: {
+                    type: 'dayGrid',
+                    duration: { weeks: 1 },
+                    dayCount: 7,
+                    dayMaxEventRows: false,
+                    dayMaxEvents: false,
+                    titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
                     dayHeaderContent: function(arg) {
                         const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
-                        return { html: `<div>${dayName}</div>` };
-                    },
-                    views: {
-                        dayGridMonth: {
-                            dayMaxEventRows: limitEvents.value ? 4 : false,
-                            dayMaxEvents: limitEvents.value ? 4 : false,
-                            fixedWeekCount: false,
-                            aspectRatio: 1.5
-                        },
-                        dayGridWeek: {
-                            type: 'dayGrid',
-                            duration: { weeks: 1 },
-                            dayCount: 7,
-                            dayMaxEventRows: false,
-                            dayMaxEvents: false,
-                            titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
-                            dayHeaderContent: function(arg) {
-                                const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
-                                const dayNumber = arg.date.getDate();
-                                return {
-                                    html: `
-                                        <div class="flex flex-col items-center">
-                                            <span class="fc-day-name">${dayName}</span>
-                                            <span class="fc-day-number">${dayNumber}</span>
-                                        </div>
-                                    `
-                                };
-                            }
-                        }
-                    },
-                    datesSet: function() {
-                        updateTitle();
-                    }
-                });
-
-                calendarApi.value = calendar;
-                calendar.render();
-
-                events.value = savedEvents;
-                renderEvents();
-
-                calendar.updateSize();
-
-                const debounce = (func, wait) => {
-                    let timeout;
-                    return function executedFunction(...args) {
-                        const later = () => {
-                            clearTimeout(timeout);
-                            func(...args);
+                        const dayNumber = arg.date.getDate();
+                        return {
+                            html: `
+                                <div class="flex flex-col items-center">
+                                    <span class="fc-day-name">${dayName}</span>
+                                    <span class="fc-day-number">${dayNumber}</span>
+                                </div>
+                            `
                         };
-                        clearTimeout(timeout);
-                        timeout = setTimeout(later, wait);
-                    };
-                };
-
-                const handleResize = debounce(() => {
-                    if (calendarApi.value) {
-                        calendarApi.value.updateSize();
                     }
-                }, 100);
-
-                window.addEventListener('resize', handleResize);
-
-                nextTick(() => {
-                    window.removeEventListener('resize', handleResize);
-                });
-
-                updateButtonStates();
-            } catch (error) {
-                console.error('Error reinitializing calendar:', error);
+                }
+            },
+            datesSet: function() {
+                updateTitle();
             }
+        });
+
+        calendarApi.value = calendar;
+        calendar.render();
+
+        events.value = savedEvents;
+        renderEvents();
+
+        calendar.updateSize();
+
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         };
-        // ----------------------------------
-        // End Component: Calendar Management
-        // ----------------------------------
 
-        // ----------------------------------
-        // Component: Event Management
-        // ----------------------------------
-        const openModal = (date) => {
-            if (showTimeline.value || showVisorPDF.value) return;
-            if (date) {
-                form.value.startDate = date;
-                form.value.endDate = date;
-            } else if (!currentEvent.value) {
-                const today = new Date().toISOString().split('T')[0];
-                form.value.startDate = today;
-                form.value.endDate = today;
+        const handleResize = debounce(() => {
+            if (calendarApi.value) {
+                calendarApi.value.updateSize();
             }
-            showModal.value = true;
+        }, 100);
 
-            nextTick(() => {
-                if (dateRangePicker.value) {
-                    flatpickrInstance = flatpickr(dateRangePicker.value, {
-                        mode: 'range',
-                        dateFormat: 'Y-m-d',
-                        locale: 'es',
-                        defaultDate: [form.value.startDate, form.value.endDate],
-                        onChange: (selectedDates) => {
-                            if (selectedDates.length === 2) {
-                                form.value.startDate = selectedDates[0].toISOString().split('T')[0];
-                                form.value.endDate = selectedDates[1].toISOString().split('T')[0];
-                            }
-                        },
-                        onReady: (selectedDates, dateStr, instance) => {
-                            if ((date && form.value.startDate === form.value.endDate) || currentEvent.value) {
-                                dateRangePicker.value.value = `${form.value.startDate} a ${form.value.endDate}`;
-                            }
-                        },
-                        onOpen: (selectedDates, dateStr, instance) => {
-                            if ((date && form.value.startDate === form.value.endDate) || currentEvent.value) {
-                                dateRangePicker.value.value = `${form.value.startDate} a ${form.value.endDate}`;
-                            }
-                        }
-                    });
+        window.addEventListener('resize', handleResize);
 
+        nextTick(() => {
+            window.removeEventListener('resize', handleResize);
+        });
+
+        updateButtonStates();
+    } catch (error) {
+        console.error('Error reinitializing calendar:', error);
+    }
+};
+// ----------------------------------
+// End Component: Calendar Management
+// ----------------------------------
+	    
+// ----------------------------------
+// Component: Event Management
+// ----------------------------------
+const openModal = (date) => {
+    if (showTimeline.value || showVisorPDF.value) return;
+    if (date) {
+        form.value.startDate = date;
+        form.value.endDate = date;
+    } else if (!currentEvent.value) {
+        const today = new Date().toISOString().split('T')[0];
+        form.value.startDate = today;
+        form.value.endDate = today;
+    }
+    showModal.value = true;
+
+    nextTick(() => {
+        if (dateRangePicker.value) {
+            flatpickrInstance = flatpickr(dateRangePicker.value, {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                locale: 'es',
+                defaultDate: [form.value.startDate, form.value.endDate],
+                onChange: (selectedDates) => {
+                    if (selectedDates.length === 2) {
+                        form.value.startDate = selectedDates[0].toISOString().split('T')[0];
+                        form.value.endDate = selectedDates[1].toISOString().split('T')[0];
+                    }
+                },
+                onReady: (selectedDates, dateStr, instance) => {
+                    if ((date && form.value.startDate === form.value.endDate) || currentEvent.value) {
+                        dateRangePicker.value.value = `${form.value.startDate} a ${form.value.endDate}`;
+                    }
+                },
+                onOpen: (selectedDates, dateStr, instance) => {
                     if ((date && form.value.startDate === form.value.endDate) || currentEvent.value) {
                         dateRangePicker.value.value = `${form.value.startDate} a ${form.value.endDate}`;
                     }
                 }
             });
-        };
 
-        const closeModal = () => {
-            showModal.value = false;
-            currentEvent.value = null;
-            error.value = null;
-            form.value = {
-                title: '',
-                description: '',
-                startDate: '',
-                endDate: '',
-                color: '#3b82f6',
-                terceroId: '',
-                viatica: true,
-                transporte: '',
-                origen: '',
-                destino: '',
-                rutaAdicional: ''
-            };
-            searchQuery.value = '';
-            showOptions.value = false;
-            origenQuery.value = '';
-            destinoQuery.value = '';
-            showOrigenOptions.value = false;
-            showDestinoOptions.value = false;
-            if (flatpickrInstance) {
-                flatpickrInstance.destroy();
-                flatpickrInstance = null;
+            if ((date && form.value.startDate === form.value.endDate) || currentEvent.value) {
+                dateRangePicker.value.value = `${form.value.startDate} a ${form.value.endDate}`;
             }
-        };
+        }
+    });
+};
 
-        const computeViatico = () => {
-            const eventToUse = currentEvent.value || form.value;
-            if (eventToUse.terceroId && eventToUse.destino && eventToUse.viatica) { // CHANGE: Added viatica check
-                const viaticoObj = createViaticoObject(eventToUse, terceros.value, cities.value);
-                if (viaticoObj && !viaticos.value.some(v => v.event.startDate === viaticoObj.event.startDate && v.tercero.numeroDocumentoTercero === viaticoObj.tercero.numeroDocumentoTercero)) {
-                    viaticos.value.push(viaticoObj);
-                }
-            }
-        };
+const closeModal = () => {
+    showModal.value = false;
+    currentEvent.value = null;
+    error.value = null;
+    form.value = {
+        title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        estadoViatico: 'CREADO', // Changed from color
+        terceroId: '',
+        viatica: true,
+        transporte: '',
+        origen: '',
+        destino: '',
+        rutaAdicional: ''
+    };
+    searchQuery.value = '';
+    showOptions.value = false;
+    origenQuery.value = '';
+    destinoQuery.value = '';
+    showOrigenOptions.value = false;
+    showDestinoOptions.value = false;
+    if (flatpickrInstance) {
+        flatpickrInstance.destroy();
+        flatpickrInstance = null;
+    }
+};
 
-        const editEvent = (eventInfo) => {
-            if (showTimeline.value || showVisorPDF.value) return;
-            const endDate = new Date(eventInfo.event.end || eventInfo.event.start);
-            endDate.setDate(endDate.getDate() - 1);
-            
-            const origenCity = cities.value.find(city => city.id === eventInfo.event.extendedProps.origen);
-            const destinoCity = cities.value.find(city => city.id === eventInfo.event.extendedProps.destino);
+const updateViaticaOnEstadoChange = () => {
+    // Update viatica based on estadoViatico
+    form.value.viatica = form.value.estadoViatico !== 'NO-VIATICA';
+};
 
-            currentEvent.value = {
-                id: eventInfo.event.id,
-                title: eventInfo.event.title,
-                description: eventInfo.event.extendedProps.description || '',
-                startDate: eventInfo.event.startStr.split('T')[0],
-                endDate: endDate.toISOString().split('T')[0],
-                color: eventInfo.event.backgroundColor || '#3b82f6',
-                terceroId: eventInfo.event.extendedProps.terceroId || '',
-                viatica: eventInfo.event.extendedProps.viatica || false,
-                transporte: eventInfo.event.extendedProps.transporte || '',
-                origen: eventInfo.event.extendedProps.origen || '',
-                destino: eventInfo.event.extendedProps.destino || '',
-                rutaAdicional: eventInfo.event.extendedProps.rutaAdicional || ''
-            };
+const computeViatico = () => {
+    const eventToUse = currentEvent.value || form.value;
+    if (eventToUse.terceroId && eventToUse.destino && eventToUse.viatica) {
+        const viaticoObj = createViaticoObject(eventToUse, terceros.value, cities.value);
+        if (viaticoObj && !viaticos.value.some(v => v.event.startDate === viaticoObj.event.startDate && v.tercero.numeroDocumentoTercero === viaticoObj.tercero.numeroDocumentoTercero)) {
+            viaticos.value.push(viaticoObj);
+        }
+    }
+};
 
-            form.value = { ...currentEvent.value };
-            searchQuery.value = form.value.title;
-            origenQuery.value = origenCity ? origenCity.nombreCiudad : '';
-            destinoQuery.value = destinoCity ? destinoCity.nombreCiudad : '';
-            computeViatico();
-            openModal();
-        };
+const editEvent = (eventInfo) => {
+    if (showTimeline.value || showVisorPDF.value) return;
+    const endDate = new Date(eventInfo.event.end || eventInfo.event.start);
+    endDate.setDate(endDate.getDate() - 1);
+    
+    const origenCity = cities.value.find(city => city.id === eventInfo.event.extendedProps.origen);
+    const destinoCity = cities.value.find(city => city.id === eventInfo.event.extendedProps.destino);
 
-        const saveEvent = () => {
-            if (!form.value.title) {
-                error.value = 'El título es requerido';
-                return;
-            }
-            if (!form.value.startDate || !form.value.endDate) {
-                error.value = 'Las fechas son requeridas';
-                return;
-            }
-            const startDate = new Date(form.value.startDate);
-            const endDate = new Date(form.value.endDate);
-            if (startDate > endDate) {
-                error.value = 'La fecha de inicio no puede ser posterior a la fecha final';
-                return;
-            }
-            error.value = null;
-            const startDateStr = `${form.value.startDate}T00:00:00`;
-            const adjustedEndDate = new Date(form.value.endDate);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
-            const endDateStr = adjustedEndDate.toISOString().split('T')[0] + 'T00:00:00';
+    currentEvent.value = {
+        id: eventInfo.event.id,
+        title: eventInfo.event.title,
+        description: eventInfo.event.extendedProps.description || '',
+        startDate: eventInfo.event.startStr.split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        estadoViatico: eventInfo.event.extendedProps.estadoViatico || 'CREADO', // Changed from color
+        terceroId: eventInfo.event.extendedProps.terceroId || '',
+        viatica: eventInfo.event.extendedProps.viatica || false,
+        transporte: eventInfo.event.extendedProps.transporte || '',
+        origen: eventInfo.event.extendedProps.origen || '',
+        destino: eventInfo.event.extendedProps.destino || '',
+        rutaAdicional: eventInfo.event.extendedProps.rutaAdicional || ''
+    };
 
-            const eventData = {
-                id: currentEvent.value ? currentEvent.value.id : Date.now().toString(),
-                title: form.value.title,
-                description: form.value.description,
-                startDate: startDateStr,
-                endDate: endDateStr,
-                color: form.value.color,
-                terceroId: form.value.terceroId,
-                viatica: form.value.viatica,
-                transporte: form.value.transporte,
-                origen: form.value.origen,
-                destino: form.value.destino,
-                rutaAdicional: form.value.rutaAdicional
-            };
+    form.value = { ...currentEvent.value };
+    form.value.estadoViatico = currentEvent.value.estadoViatico || 'CREADO';
+    searchQuery.value = form.value.title;
+    origenQuery.value = origenCity ? origenCity.nombreCiudad : '';
+    destinoQuery.value = destinoCity ? destinoCity.nombreCiudad : '';
+    computeViatico();
+    openModal();
+};
 
-            if (currentEvent.value) {
-                const index = events.value.findIndex(e => e.id === currentEvent.value.id);
-                if (index !== -1) events.value[index] = eventData;
-            } else {
-                events.value.push(eventData);
-            }
-            localStorage.setItem('academicEvents', JSON.stringify(events.value));
-            renderEvents();
-            closeModal();
-        };
+const saveEvent = () => {
+    if (!form.value.title) {
+        error.value = 'El título es requerido';
+        return;
+    }
+    if (!form.value.startDate || !form.value.endDate) {
+        error.value = 'Las fechas son requeridas';
+        return;
+    }
+    const startDate = new Date(form.value.startDate);
+    const endDate = new Date(form.value.endDate);
+    if (startDate > endDate) {
+        error.value = 'La fecha de inicio no puede ser posterior a la fecha final';
+        return;
+    }
+    error.value = null;
+    const startDateStr = `${form.value.startDate}T00:00:00`;
+    const adjustedEndDate = new Date(form.value.endDate);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+    const endDateStr = adjustedEndDate.toISOString().split('T')[0] + 'T00:00:00';
 
-        const deleteEvent = () => {
-            if (currentEvent.value) {
-                events.value = events.value.filter(e => e.id !== currentEvent.value.id);
-                localStorage.setItem('academicEvents', JSON.stringify(events.value));
-                renderEvents();
-                closeModal();
-            }
-        };
+    const eventData = {
+        id: currentEvent.value ? currentEvent.value.id : Date.now().toString(),
+        title: form.value.title,
+        description: form.value.description,
+        startDate: startDateStr,
+        endDate: endDateStr,
+        estadoViatico: form.value.estadoViatico, // Changed from color
+        terceroId: form.value.terceroId,
+        viatica: form.value.viatica,
+        transporte: form.value.transporte,
+        origen: form.value.origen,
+        destino: form.value.destino,
+        rutaAdicional: form.value.rutaAdicional
+    };
 
-        const createViaticoObject = (eventData, terceros, cities) => {
-            if (!eventData) return null;
+    if (currentEvent.value) {
+        const index = events.value.findIndex(e => e.id === currentEvent.value.id);
+        if (index !== -1) events.value[index] = eventData;
+    } else {
+        events.value.push(eventData);
+    }
+    localStorage.setItem('academicEvents', JSON.stringify(events.value));
+    renderEvents();
+    closeModal();
+};
 
-            const tercero = terceros.find(t => t.id === eventData.terceroId);
-            const destinoCity = cities.find(c => c.id === eventData.destino);
-            if (!tercero || !destinoCity) return null;
+const deleteEvent = () => {
+    if (currentEvent.value) {
+        events.value = events.value.filter(e => e.id !== currentEvent.value.id);
+        localStorage.setItem('academicEvents', JSON.stringify(events.value));
+        renderEvents();
+        closeModal();
+    }
+};
 
-            const startDate = new Date(eventData.startDate);
-            const endDate = new Date(eventData.endDate);
+const createViaticoObject = (eventData, terceros, cities) => {
+    if (!eventData) return null;
 
-            // Adjust endDate for inclusive calculation (FullCalendar's endDate is exclusive)
-            const adjustedEndDate = new Date(endDate);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
+    const tercero = terceros.find(t => t.id === eventData.terceroId);
+    const destinoCity = cities.find(c => c.id === eventData.destino);
+    if (!tercero || !destinoCity) return null;
 
-            // Calculate total days (inclusive of start and adjusted end dates)
-            const totalDays = Math.floor((adjustedEndDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const startDate = new Date(eventData.startDate);
+    const endDate = new Date(eventData.endDate);
 
-            // Apply logic for duracion based on totalDays
-            let duracion;
-            if (totalDays === 1) {
-                duracion = 0.5;
-            } else if (totalDays === 2) {
-                duracion = 1.5;
-            } else if (totalDays === 3) {
-                duracion = 2.5;
-            } else if (totalDays >= 4) {
-                duracion = totalDays - 0.5; // For 4 days: 3.5, etc.
-            } else {
-                // Fallback for unexpected cases
-                duracion = totalDays > 1 ? totalDays - 0.5 : totalDays / 2;
-            }
+    // Adjust endDate for inclusive calculation (FullCalendar's endDate is exclusive)
+    const adjustedEndDate = new Date(endDate);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
 
-            // Debug log for startDate, endDate, totalDays, and duracion
-            console.log('[createViaticoObject] Viático Debug:', {
-                tercero: tercero.nombreTercero,
-                startDate: eventData.startDate,
-                endDate: eventData.endDate,
-                adjustedEndDate: adjustedEndDate.toISOString(),
-                totalDays: totalDays,
-                duracion: duracion
-            });
+    // Calculate total days (inclusive of start and adjusted end dates)
+    const totalDays = Math.floor((adjustedEndDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
-            const formatDate = (date) => {
-                const d = new Date(date);
-                return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-            };
+    // Apply logic for duracion based on totalDays
+    let duracion;
+    if (totalDays === 1) {
+        duracion = 0.5;
+    } else if (totalDays === 2) {
+        duracion = 1.5;
+    } else if (totalDays === 3) {
+        duracion = 2.5;
+    } else if (totalDays >= 4) {
+        duracion = totalDays - 0.5; // For 4 days: 3.5, etc.
+    } else {
+        // Fallback for unexpected cases
+        duracion = totalDays > 1 ? totalDays - 0.5 : totalDays / 2;
+    }
 
-            // Construct partial viatico object for computeViaticoDetails
-            const viatico = {
-                dependencia: DEPENDENCIA,
-                currentDate: formatDate(new Date('2025-05-04')),
-                duracion: duracion,
-                tercero: {
-                    nombreTercero: tercero.nombreTercero,
-                    nacimiento: tercero.props.fechaNacimiento ? formatDate(tercero.props.fechaNacimiento) : '',
-                    numeroDocumentoTercero: tercero.numeroDocumentoTercero,
-                    correo: tercero.props.correo,
-                    telefono: tercero.props.telefono,
-                    entidadBancaria: tercero.props.entidadBancaria,
-                    cargoServidor: tercero.props.cargoServidor,
-                    tipoCuenta: tercero.props.tipoCuenta,
-                    tipoTercero: tercero.props.tipoTercero,
-                    cuentaBancaria: tercero.props.cuentaBancaria,
-                    props: tercero.props
-                },
-                event: {
-                    startDate: formatDate(eventData.startDate),
-                    endDate: formatDate(adjustedEndDate),
-                    description: eventData.description || '',
-                    transporte: eventData.transporte || '0',
-                    itinerario: eventData.rutaAdicional || '',
-                    ciudadDestino: destinoCity.nombreCiudad,
-                    ciudadDestinoDepartamento: destinoCity.departamento
-                },
-                eventId: eventData.id
-            };
+    // Debug log for startDate, endDate, totalDays, and duracion
+    console.log('[createViaticoObject] Viático Debug:', {
+        tercero: tercero.nombreTercero,
+        startDate: eventData.startDate,
+        endDate: eventData.endDate,
+        adjustedEndDate: adjustedEndDate.toISOString(),
+        totalDays: totalDays,
+        duracion: duracion
+    });
 
-            // Calculate cost using computeViaticoDetails
-            const cost = computeViaticoDetails(viatico).viaticoTotal;
+    const formatDate = (date) => {
+        const d = new Date(date);
+        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+    };
 
-            // Return complete viatico object with updated cost
-            return {
-                ...viatico,
-                cost: cost
-            };
-        };
-        // ----------------------------------
-        // End Component: Event Management
-        // ----------------------------------
+    // Construct partial viatico object for computeViaticoDetails
+    const viatico = {
+        dependencia: DEPENDENCIA,
+        currentDate: formatDate(new Date('2025-05-04')),
+        duracion: duracion,
+        tercero: {
+            nombreTercero: tercero.nombreTercero,
+            nacimiento: tercero.props.fechaNacimiento ? formatDate(tercero.props.fechaNacimiento) : '',
+            numeroDocumentoTercero: tercero.numeroDocumentoTercero,
+            correo: tercero.props.correo,
+            telefono: tercero.props.telefono,
+            entidadBancaria: tercero.props.entidadBancaria,
+            cargoServidor: tercero.props.cargoServidor,
+            tipoCuenta: tercero.props.tipoCuenta,
+            tipoTercero: tercero.props.tipoTercero,
+            cuentaBancaria: tercero.props.cuentaBancaria,
+            props: tercero.props
+        },
+        event: {
+            startDate: formatDate(eventData.startDate),
+            endDate: formatDate(adjustedEndDate),
+            description: eventData.description || '',
+            transporte: eventData.transporte || '0',
+            itinerario: eventData.rutaAdicional || '',
+            ciudadDestino: destinoCity.nombreCiudad,
+            ciudadDestinoDepartamento: destinoCity.departamento
+        },
+        eventId: eventData.id
+    };
+
+    // Calculate cost using computeViaticoDetails
+    const cost = computeViaticoDetails(viatico).viaticoTotal;
+
+    // Return complete viatico object with updated cost
+    return {
+        ...viatico,
+        cost: cost
+    };
+};
+// ----------------------------------
+// End Component: Event Management
+// ----------------------------------
 
         // ----------------------------------
         // Component: Event Modal Input Formatting
@@ -1935,72 +1960,6 @@ const app = createApp({
         // ----------------------------------
 
         // ----------------------------------
-        // Component: Test Events Management
-        // ----------------------------------
-        const addTestEvents = () => {
-            console.log('[addTestEvents] Adding test events...');
-            const testEvents = [
-                {
-                    id: 'test1',
-                    title: 'Juan Pérez',
-                    startDate: '2025-05-09T00:00:00',
-                    endDate: '2025-05-10T00:00:00',
-                    terceroId: '1',
-                    destino: '1',
-                    color: '#3b82f6',
-                    viatica: true,
-                    transporte: '20000',
-                    origen: '1'
-                },
-                {
-                    id: 'test2',
-                    title: 'Carlos López',
-                    startDate: '2025-05-16T00:00:00',
-                    endDate: '2025-05-17T00:00:00',
-                    terceroId: '3',
-                    destino: '2',
-                    color: '#3b82f6',
-                    viatica: true,
-                    transporte: '20000',
-                    origen: '2'
-                },
-                {
-                    id: 'test3',
-                    title: 'María Gómez',
-                    startDate: '2025-05-20T00:00:00',
-                    endDate: '2025-05-21T00:00:00',
-                    terceroId: '2',
-                    destino: '3',
-                    color: '#3b82f6',
-                    viatica: false, // Added test event with viatica: false
-                    transporte: '0',
-                    origen: '1'
-                }
-            ];
-
-            // Clear existing events (optional, depending on test requirements)
-            // events.value = [];
-
-            // Add test events
-            testEvents.forEach(event => {
-                if (!events.value.some(e => e.id === event.id)) {
-                    events.value.push(event);
-                    console.log(`[addTestEvents] Added event: ${event.title} (ID: ${event.id}, viatica: ${event.viatica})`);
-                } else {
-                    console.log(`[addTestEvents] Event with ID ${event.id} already exists, skipping.`);
-                }
-            });
-
-            // Save to localStorage and render events
-            localStorage.setItem('academicEvents', JSON.stringify(events.value));
-            renderEvents();
-            console.log('[addTestEvents] Test events added, total events:', events.value.length);
-        };
-        // ----------------------------------
-        // End Component: Test Events Management
-        // ----------------------------------
-
-        // ----------------------------------
         // Component: Lifecycle Hooks
         // ----------------------------------
         onMounted(async () => {
@@ -2111,7 +2070,7 @@ const app = createApp({
         const openPeriodoModal = () => { };
         const toggleTimeline = () => { };
 
-        // ----------------------------------
+// ----------------------------------
         // Component: Exposed methods and properties
         // ----------------------------------
         return {
@@ -2188,7 +2147,8 @@ const app = createApp({
             REDONDEAR,
             formatCurrency,
             computeViaticoDetails,
-            addTestEvents
+            addTestEvents,
+            updateViaticaOnEstadoChange // Added new method
         };
         // ----------------------------------
         // End Component: Exposed methods and properties
