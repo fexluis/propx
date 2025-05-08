@@ -24,7 +24,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v3</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v4</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -455,7 +455,7 @@
 // ----------------------------------
 // Component: Vue Setup and Imports
 // ----------------------------------
-const { createApp, ref, onMounted, onUnmounted, nextTick, computed, reactive } = Vue;
+const { createApp, ref, onMounted, onUnmounted, nextTick, computed, reactive, watch } = Vue;
 
 // Mock data for terceros
 const mockTerceros = [
@@ -605,9 +605,23 @@ const origenQuery = ref('');
 const destinoQuery = ref('');
 const showOrigenOptions = ref(false);
 const showDestinoOptions = ref(false);
+
+// Add a flag to prevent infinite loops
+const isUpdating = ref(false);
+// Watch for changes to form.viatica and update estadoViatico
+watch(
+    () => form.value.viatica,
+    (newValue) => {
+        if (isUpdating.value) return; // Prevent loop
+        isUpdating.value = true;
+        form.value.estadoViatico = newValue ? 'CREADO' : 'NO-VIATICA';
+        isUpdating.value = false;
+    }
+);
 // ----------------------------------
 // End Component: State management
 // ----------------------------------
+	    
 // ----------------------------------
 // Component: Button State Management
 // ----------------------------------
@@ -1245,8 +1259,10 @@ const closeModal = () => {
 };
 
 const updateViaticaOnEstadoChange = () => {
-    // Update viatica based on estadoViatico
+    if (isUpdating.value) return; // Prevent loop
+    isUpdating.value = true;
     form.value.viatica = form.value.estadoViatico !== 'NO-VIATICA';
+    isUpdating.value = false;
 };
 
 const computeViatico = () => {
@@ -2124,7 +2140,7 @@ return {
     selectOrigenCity,
     selectDestinoCity,
     hideOrigenOptions,
-    hideDestinoOptions,            
+    hideDestinoOptions,
     showVisorPDF,
     toggleVisorPDF,
     isGeneratingPDF,
@@ -2134,14 +2150,15 @@ return {
     reinitializeCalendar,
     disabledButtons,
     debugViaticos,
-    openPeriodoModal, 
+    openPeriodoModal,
     toggleTimeline,
     showTimeline,
     toggleTimeline,
     REDONDEAR,
     formatCurrency,
     computeViaticoDetails,
-    updateViaticaOnEstadoChange
+    updateViaticaOnEstadoChange,
+    isUpdating 
 };
 // ----------------------------------
 // End Component: Exposed methods and properties
