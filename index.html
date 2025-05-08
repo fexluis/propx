@@ -243,14 +243,17 @@
 								>
 							</div>
 							<div class="flex-1">
-								<label for="color" class="block text-sm font-medium text-gray-700">Color</label>
-								<select id="color" v-model="form.color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-									<option value="#3b82f6">Azul</option>
-									<option value="#10b981">Verde</option>
-									<option value="#8b5cf6">Morado</option>
-									<option value="#f59e0b">Amarillo</option>
-									<option value="#ef4444">Rojo</option>
-								</select>
+							    <label for="estadoViatico" class="block text-sm font-medium text-gray-700">Estado Viático</label>
+							    <select id="estadoViatico" v-model="form.estadoViatico" @change="updateViaticaOnEstadoChange" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+							        <option value="CREADO" style="background-color: #3b82f6; color: white;">CREADO</option>
+							        <option value="NO-VIATICA" style="background-color: #D3D3D3; color: black;">NO-VIATICA</option>
+							        <option value="ANULADA" style="background-color: #800080; color: white;">ANULADA</option>
+							        <option value="REINTEGRO" style="background-color: #D8BFD8; color: black;">REINTEGRO</option>
+							        <option value="SIN-LEGALIZAR" style="background-color: #FFFF00; color: black;">SIN-LEGALIZAR</option>
+							        <option value="EN-APROBACION" style="background-color: #00FFFF; color: black;">EN-APROBACION</option>
+							        <option value="LEGALIZADO" style="background-color: #FFA500; color: black;">LEGALIZADO</option>
+							        <option value="PAGADO" style="background-color: #008000; color: white;">PAGADO</option>
+							    </select>
 							</div>
 							<div class="flex space-x-3 items-end">
 								<button v-if="currentEvent" type="button" @click="deleteEvent" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
