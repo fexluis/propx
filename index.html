@@ -134,6 +134,7 @@
 									@blur="hideOptions"
 									@input="filterTerceros"
 									placeholder="Selecciona un tercero..."
+									autocomplete="off"
 									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 								>
 								<div v-if="showOptions && filteredTerceros.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -173,6 +174,7 @@
 									@blur="hideOrigenOptions"
 									@input="filterOrigenCities"
 									placeholder="Selecciona una ciudad..."
+									autocomplete="off"
 									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 								>
 								<div v-if="showOrigenOptions && filteredOrigenCities.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -198,6 +200,7 @@
 									@blur="hideDestinoOptions"
 									@input="filterDestinoCities"
 									placeholder="Selecciona una ciudad..."
+									autocomplete="off"
 									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 								>
 								<div v-if="showDestinoOptions && filteredDestinoCities.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -243,7 +246,7 @@
 								>
 							</div>
 							<div class="flex-1">
-							    <label for="estadoViatico" class="block text-sm font-medium text-gray-700">Estado Viático</label>
+							    <label for="estadoViatico" class="block text-sm font-medium text-gray-700">Estado</label>
 							    <select id="estadoViatico" v-model="form.estadoViatico" @change="updateViaticaOnEstadoChange" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
 							        <option value="CREADO" style="background-color: #3b82f6; color: white;">CREADO</option>
 							        <option value="NO-VIATICA" style="background-color: #D3D3D3; color: black;">NO-VIATICA</option>
