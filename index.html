@@ -24,7 +24,7 @@
 	    <div class="px-4 py-3">
 	        <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
 	            <div class="flex items-center justify-between">
-	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v3</h1>
+	                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-4v9d</h1>
 	                <div class="md:hidden">
 	                    <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
 	                        <i class="fas fa-calendar-alt"></i>
@@ -43,7 +43,7 @@
 	                        <i class="fas fa-chevron-left"></i>
 	                    </button>
 	                    <h2 id="calendar-title" class="text-base md:text-lg font-semibold">
-	                        {{ getTitle }}
+	                        {{ getTitle() }}
 	                    </h2>
 	                    <button @click="navigate('next')" class="p-2 rounded-full hover:bg-blue-700">
 	                        <i class="fas fa-chevron-right"></i>
@@ -100,86 +100,178 @@
         <!-- End Component: Calendar -->
         <!-- ---------------------------------- -->
 
-<!-- ---------------------------------- -->
-<!-- Component: Event Modal -->
-<!-- ---------------------------------- -->
-<div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-    <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md m-4">
-        <div class="flex justify-between items-center p-4 border-b">
-            <h3 class="text-lg font-semibold">{{ currentEvent ? 'Editar Evento' : 'Crear Evento' }}</h3>
-            <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        <div class="p-4">
-            <form @submit.prevent="saveEvent">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Título</label>
-                    <input v-model="searchQuery" @input="filterTerceros" @blur="hideOptions" @focus="filterTerceros" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Buscar tercero..." autocomplete="off">
-                    <div v-if="showOptions && filteredTerceros.length" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
-                        <div v-for="tercero in filteredTerceros" :key="tercero.id" @click="selectTercero(tercero)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
-                            {{ tercero.nombreTercero }}
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Descripción</label>
-                    <input v-model="form.description" @input="handleDescriptionInput" type="text" maxlength="120" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Descripción del evento">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Rango de Fechas</label>
-                    <input ref="dateRangePicker" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Selecciona un rango de fechas">
-                </div>
-                <!-- CHANGE: Replaced color select with estadoViatico select -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Estado del Viático</label>
-                    <select v-model="form.estadoViatico" @change="updateViaticaBasedOnEstado" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option v-for="state in viaticoStates" :key="state.value" :value="state.value" :style="{ backgroundColor: state.color, color: state.textColor }" class="py-2">
-                            {{ state.label }}
-                        </option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Transporte</label>
-                    <input v-model="form.transporte" @input="handleTransporteInput" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Valor del transporte">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Origen</label>
-                    <input v-model="origenQuery" @input="filterOrigenCities" @blur="hideOrigenOptions" @focus="filterOrigenCities" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Buscar ciudad de origen..." autocomplete="off">
-                    <div v-if="showOrigenOptions && filteredOrigenCities.length" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
-                        <div v-for="city in filteredOrigenCities" :key="city.id" @click="selectOrigenCity(city)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
-                            {{ city.nombreCiudad }}
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Destino</label>
-                    <input v-model="destinoQuery" @input="filterDestinoCities" @blur="hideDestinoOptions" @focus="filterDestinoCities" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Buscar ciudad de destino..." autocomplete="off">
-                    <div v-if="showDestinoOptions && filteredDestinoCities.length" class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
-                        <div v-for="city in filteredDestinoCities" :key="city.id" @click="selectDestinoCity(city)" class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
-                            {{ city.nombreCiudad }}
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Ruta Adicional</label>
-                    <input v-model="form.rutaAdicional" @input="handleRutaAdicionalInput" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Ruta adicional">
-                </div>
-                <div v-if="error" class="mb-4 text-red-600 text-sm">{{ error }}</div>
-                <div class="flex justify-end space-x-2">
-                    <button v-if="currentEvent" type="button" @click="deleteEvent" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">Eliminar</button>
-                    <button type="button" @click="closeModal" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
-                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- ---------------------------------- -->
-<!-- End Component: Event Modal -->
-<!-- ---------------------------------- -->
+        <!-- ---------------------------------- -->
+	<!-- Component: Event Modal -->
+	<!-- ---------------------------------- -->
+	<div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 modal">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+			<div class="p-6">
+				<div class="flex justify-between items-center mb-4">
+					<h3 class="text-lg font-semibold text-gray-900">
+						{{ currentEvent ? 'Editar Viático' : 'Nuevo Viático' }}
+					</h3>
+					<div class="flex items-center space-x-3">
+						<div class="flex items-center">
+							<label for="viatica" class="text-sm font-medium text-gray-700 mr-2">Viática</label>
+							<input type="checkbox" id="viatica" v-model="form.viatica" class="h-6 w-6 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+						</div>
+						<button @click="closeModal" class="text-gray-400 hover:text-gray-500">
+							<i class="fas fa-times"></i>
+						</button>
+					</div>
+				</div>
+				<div v-if="error" class="mb-4 p-2 bg-red-100 text-red-700 rounded-md">
+					{{ error }}
+				</div>
+				<form @submit.prevent="saveEvent">
+					<div class="space-y-4">
+						<div>
+							<div class="relative">
+								<input
+									id="title"
+									v-model="searchQuery"
+									@focus="showOptions = true"
+									@blur="hideOptions"
+									@input="filterTerceros"
+									placeholder="Selecciona un tercero..."
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+								<div v-if="showOptions && filteredTerceros.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+									<div
+										v-for="tercero in filteredTerceros"
+										:key="tercero.id"
+										class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+										@mousedown="selectTercero(tercero)"
+									>
+										{{ tercero.nombreTercero }}
+									</div>
+								</div>
+								<div v-else-if="showOptions" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+									<div class="px-3 py-2 text-gray-500">No se encontraron resultados</div>
+								</div>
+							</div>
+							<input type="hidden" v-model="form.terceroId" name="terceroId" />
+						</div>
+						<div>
+							<label for="description" class="block text-sm font-medium text-gray-700">Descripción de la comisión de servicios o salida de campo</label>
+							<textarea
+								id="description"
+								v-model="form.description"
+								@input="handleDescriptionInput"
+								rows="3"
+								maxlength="120"
+								class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+							></textarea>
+						</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div class="relative">
+								<label for="origen" class="block text-sm font-medium text-gray-700">Origen</label>
+								<input
+									id="origen"
+									v-model="origenQuery"
+									@focus="showOrigenOptions = true"
+									@blur="hideOrigenOptions"
+									@input="filterOrigenCities"
+									placeholder="Selecciona una ciudad..."
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+								<div v-if="showOrigenOptions && filteredOrigenCities.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+									<div
+										v-for="city in filteredOrigenCities"
+										:key="city.id"
+										class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+										@mousedown="selectOrigenCity(city)"
+									>
+										{{ city.nombreCiudad }}
+									</div>
+								</div>
+								<div v-else-if="showOrigenOptions" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+									<div class="px-3 py-2 text-gray-500">No hay resultados</div>
+								</div>
+							</div>
+							<div class="relative">
+								<label for="destino" class="block text-sm font-medium text-gray-700">Destino</label>
+								<input
+									id="destino"
+									v-model="destinoQuery"
+									@focus="showDestinoOptions = true"
+									@blur="hideDestinoOptions"
+									@input="filterDestinoCities"
+									placeholder="Selecciona una ciudad..."
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+								<div v-if="showDestinoOptions && filteredDestinoCities.length" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+									<div
+										v-for="city in filteredDestinoCities"
+										:key="city.id"
+										class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+										@mousedown="selectDestinoCity(city)"
+									>
+										{{ city.nombreCiudad }}
+									</div>
+								</div>
+								<div v-else-if="showDestinoOptions" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+									<div class="px-3 py-2 text-gray-500">No hay resultados</div>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label for="dateRange" class="block text-sm font-medium text-gray-700">Rango de Fechas *</label>
+								<input type="text" id="dateRange" ref="dateRangePicker" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+							</div>
+							<div>
+								<label for="rutaAdicional" class="block text-sm font-medium text-gray-700">Ruta Adicional</label>
+								<input
+									type="text"
+									id="rutaAdicional"
+									v-model="form.rutaAdicional"
+									@input="handleRutaAdicionalInput"
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+							</div>
+						</div>
+						<div class="flex items-end gap-4">
+							<div class="flex-1">
+								<label for="transporte" class="block text-sm font-medium text-gray-700">Transporte</label>
+								<input
+									type="text"
+									id="transporte"
+									v-model="form.transporte"
+									@input="handleTransporteInput"
+									class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								>
+							</div>
+							<div class="flex-1">
+								<label for="color" class="block text-sm font-medium text-gray-700">Color</label>
+								<select id="color" v-model="form.color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+									<option value="#3b82f6">Azul</option>
+									<option value="#10b981">Verde</option>
+									<option value="#8b5cf6">Morado</option>
+									<option value="#f59e0b">Amarillo</option>
+									<option value="#ef4444">Rojo</option>
+								</select>
+							</div>
+							<div class="flex space-x-3 items-end">
+								<button v-if="currentEvent" type="button" @click="deleteEvent" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+									Eliminar
+								</button>
+								<button type="button" @click="closeModal" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+									Cancelar
+								</button>
+								<button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+									Guardar
+								</button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!-- ---------------------------------- -->
+	<!-- End Component: Event Modal -->
+	<!-- ---------------------------------- -->
 		
 <!-- ---------------------------------- -->
 <!-- Component: Visor PDF -->
@@ -354,7 +446,7 @@
 
 
 <!-- ---------------------------------- -->
-<!-- Component: JavaScript and Vue app initialization -->
+<!-- Component: script -->
 <!-- ---------------------------------- -->
 <script>
 // ----------------------------------
@@ -418,7 +510,7 @@ const app = createApp({
             description: '',
             startDate: '',
             endDate: '',
-            estadoViatico: 'CREADO', // CHANGE: Replaced color with estadoViatico, default to CREADO
+            color: '#3b82f6',
             terceroId: '',
             viatica: true,
             transporte: '',
@@ -491,17 +583,6 @@ const app = createApp({
             programming: false,
             eventLimit: false
         });
-        // CHANGE: Define viático states and their colors
-        const viaticoStates = [
-            { value: 'NO-VIATICA', label: 'NO-VIATICA', color: '#D3D3D3', textColor: '#000000' },
-            { value: 'ANULADA', label: 'ANULADA', color: '#800080', textColor: '#FFFFFF' },
-            { value: 'REINTEGRO', label: 'REINTEGRO', color: '#D8BFD8', textColor: '#000000' },
-            { value: 'CREADO', label: 'CREADO', color: '#3b82f6', textColor: '#FFFFFF' },
-            { value: 'SIN-LEGALIZAR', label: 'SIN-LEGALIZAR', color: '#FFFF00', textColor: '#000000' },
-            { value: 'EN-APROBACION', label: 'EN-APROBACION', color: '#00FFFF', textColor: '#000000' },
-            { value: 'LEGALIZADO', label: 'LEGALIZADO', color: '#FFA500', textColor: '#000000' },
-            { value: 'PAGADO', label: 'PAGADO', color: '#008000', textColor: '#FFFFFF' }
-        ];
         // ----------------------------------
         // End Component: State management
         // ----------------------------------
@@ -859,7 +940,7 @@ const app = createApp({
         };
 
         const darkenColor = (color, percent) => {
-            if (!color) return '#3b82f6'; // CHANGE: Default to CREADO color
+            if (!color) return '#3b82f6';
             if (color.startsWith('#')) {
                 const num = parseInt(color.replace("#", ""), 16);
                 const amt = Math.round(2.55 * percent);
@@ -868,7 +949,7 @@ const app = createApp({
                 const B = Math.max(0, (num & 0x0000FF) - amt);
                 return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
             }
-            return '#2563eb'; // CHANGE: Fallback to darker CREADO color
+            return '#2563eb';
         };
 
         const navigate = (direction) => {
@@ -922,17 +1003,14 @@ const app = createApp({
             try {
                 calendarApi.value.getEvents().forEach(event => event.remove());
                 events.value.forEach(event => {
-                    // CHANGE: Map estadoViatico to color
-                    const state = viaticoStates.find(s => s.value === event.estadoViatico) || viaticoStates.find(s => s.value === 'CREADO');
-                    const eventColor = state.color;
                     calendarApi.value.addEvent({
                         id: event.id,
                         title: event.title,
                         start: event.startDate,
                         end: event.endDate,
                         allDay: true,
-                        backgroundColor: eventColor,
-                        borderColor: darkenColor(eventColor, 20),
+                        backgroundColor: event.color || '#3b82f6',
+                        borderColor: darkenColor(event.color, 20),
                         extendedProps: { 
                             description: event.description || '',
                             terceroId: event.terceroId || '',
@@ -1077,15 +1155,6 @@ const app = createApp({
         // ----------------------------------
         // Component: Event Management
         // ----------------------------------
-        // CHANGE: Function to update viatica based on estadoViatico
-        const updateViaticaBasedOnEstado = () => {
-            form.value.viatica = form.value.estadoViatico !== 'NO-VIATICA';
-            console.log('[updateViaticaBasedOnEstado] Updated viatica:', {
-                estadoViatico: form.value.estadoViatico,
-                viatica: form.value.viatica
-            });
-        };
-
         const openModal = (date) => {
             if (showTimeline.value || showVisorPDF.value) return;
             if (date) {
@@ -1139,7 +1208,7 @@ const app = createApp({
                 description: '',
                 startDate: '',
                 endDate: '',
-                estadoViatico: 'CREADO', // CHANGE: Default to CREADO
+                color: '#3b82f6',
                 terceroId: '',
                 viatica: true,
                 transporte: '',
@@ -1161,7 +1230,7 @@ const app = createApp({
 
         const computeViatico = () => {
             const eventToUse = currentEvent.value || form.value;
-            if (eventToUse.terceroId && eventToUse.destino && eventToUse.viatica) {
+            if (eventToUse.terceroId && eventToUse.destino) {
                 const viaticoObj = createViaticoObject(eventToUse, terceros.value, cities.value);
                 if (viaticoObj && !viaticos.value.some(v => v.event.startDate === viaticoObj.event.startDate && v.tercero.numeroDocumentoTercero === viaticoObj.tercero.numeroDocumentoTercero)) {
                     viaticos.value.push(viaticoObj);
@@ -1183,7 +1252,7 @@ const app = createApp({
                 description: eventInfo.event.extendedProps.description || '',
                 startDate: eventInfo.event.startStr.split('T')[0],
                 endDate: endDate.toISOString().split('T')[0],
-                estadoViatico: eventInfo.event.extendedProps.estadoViatico || 'CREADO', // CHANGE: Use estadoViatico
+                color: eventInfo.event.backgroundColor || '#3b82f6',
                 terceroId: eventInfo.event.extendedProps.terceroId || '',
                 viatica: eventInfo.event.extendedProps.viatica || false,
                 transporte: eventInfo.event.extendedProps.transporte || '',
@@ -1227,7 +1296,7 @@ const app = createApp({
                 description: form.value.description,
                 startDate: startDateStr,
                 endDate: endDateStr,
-                estadoViatico: form.value.estadoViatico, // CHANGE: Use estadoViatico
+                color: form.value.color,
                 terceroId: form.value.terceroId,
                 viatica: form.value.viatica,
                 transporte: form.value.transporte,
@@ -1370,32 +1439,32 @@ const app = createApp({
         };
 
         const handleDescriptionInput = (event) => {
-            const input = event.target;
-            let value = input.value;
-            
-            // Store current cursor position
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            
-            // Remove invalid characters (allow a-z, A-Z, 0-9, hyphen, space)
-            value = value.replace(/[^a-zA-Z0-9\s-]/g, '');
-            
-            // Enforce 120-character limit
-            if (value.length > 120) {
-                value = value.substring(0, 120);
-            }
-            
-            // Convert to uppercase
-            value = value.toUpperCase();
-            
-            // Update reactive form value
-            form.value.description = value;
-            
-            // Restore cursor position in next tick to avoid reactivity issues
-            nextTick(() => {
-                input.setSelectionRange(start, end);
-            });
-        };
+        const input = event.target;
+        let value = input.value;
+        
+        // Store current cursor position
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        
+        // Remove invalid characters (allow a-z, A-Z, 0-9, hyphen, space)
+        value = value.replace(/[^a-zA-Z0-9\s-]/g, '');
+        
+        // Enforce 120-character limit
+        if (value.length > 120) {
+            value = value.substring(0, 120);
+        }
+        
+        // Convert to uppercase
+        value = value.toUpperCase();
+        
+        // Update reactive form value
+        form.value.description = value;
+        
+        // Restore cursor position in next tick to avoid reactivity issues
+        nextTick(() => {
+            input.setSelectionRange(start, end);
+        });
+    };
         // ----------------------------------
         // End Component: Event Modal Input Formatting
         // ----------------------------------
@@ -1436,14 +1505,13 @@ const app = createApp({
             const filteredEvents = events.value.filter(event => {
                 const eventStart = new Date(event.startDate);
                 const isWithinRange = eventStart >= startDate && eventStart <= endDate;
-                const hasRequiredFields = event.terceroId && event.destino && event.viatica;
+                const hasRequiredFields = event.terceroId && event.destino;
                 console.log('[computeViaticoForProgramming] Filtering event:', {
                     eventId: event.id,
                     startDate: event.startDate,
                     isWithinRange,
                     hasTercero: !!event.terceroId,
                     hasDestino: !!event.destino,
-                    hasViatica: event.viatica,
                     included: isWithinRange && hasRequiredFields
                 });
                 return isWithinRange && hasRequiredFields;
@@ -1453,8 +1521,7 @@ const app = createApp({
                 id: e.id,
                 startDate: e.startDate,
                 terceroId: e.terceroId,
-                destino: e.destino,
-                viatica: e.viatica
+                destino: e.destino
             })));
 
             const newViaticos = filteredEvents
@@ -1545,14 +1612,13 @@ const app = createApp({
             const filteredEvents = events.value.filter(event => {
                 const eventStart = new Date(event.startDate);
                 const isWithinRange = eventStart >= startDate && eventStart <= endDate;
-                const hasRequiredFields = event.terceroId && event.destino && event.viatica;
+                const hasRequiredFields = event.terceroId && event.destino;
                 console.log('[generateProgrammingJson] Event filter:', {
                     eventId: event.id,
                     startDate: event.startDate,
                     isWithinRange,
                     hasTercero: !!event.terceroId,
                     hasDestino: !!event.destino,
-                    hasViatica: event.viatica,
                     included: isWithinRange && hasRequiredFields
                 });
                 return isWithinRange && hasRequiredFields;
@@ -1562,8 +1628,7 @@ const app = createApp({
                 id: e.id,
                 startDate: e.startDate,
                 terceroId: e.terceroId,
-                destino: e.destino,
-                viatica: e.viatica
+                destino: e.destino
             })));
 
             const eventsWithViatico = filteredEvents.map(event => {
@@ -1712,170 +1777,304 @@ const app = createApp({
         };
 
         const generatePDF = async () => {
-            if (viaticos.value.length === 0) {
-                console.warn('[generatePDF] No viáticos available for PDF generation.');
-                alert('No hay viáticos para generar el PDF.');
-                return;
+        if (viaticos.value.length === 0) {
+            console.warn('[generatePDF] No viáticos available for PDF generation.');
+            alert('No hay viáticos para generar el PDF.');
+            return;
+        }
+    
+        if (typeof window.html2canvas !== 'function') {
+            console.error('[generatePDF] html2canvas is not loaded.');
+            alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
+            return;
+        }
+    
+        if (typeof JSZip !== 'function') {
+            console.error('[generatePDF] JSZip is not loaded.');
+            alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
+            return;
+        }
+    
+        if (typeof saveAs !== 'function') {
+            console.error('[generatePDF] FileSaver.js is not loaded.');
+            alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
+            return;
+        }
+    
+        isGeneratingPDF.value = true;
+        console.log('[generatePDF] Started PDF generation, showing loading modal.');
+        console.log('[generatePDF] Viaticos:', viaticos.value.map(v => ({
+            index: v.eventId,
+            nombreTercero: v.tercero.nombreTercero,
+            tipoTercero: v.tercero.tipoTercero,
+            expectedElement: v.tercero.tipoTercero === 'CATEDRATICO' ? `pf1-${v.eventId}` : v.tercero.tipoTercero === 'SERVIDOR' ? `pf2-${v.eventId}` : `pf3-${v.eventId}`
+        })));
+    
+        const { jsPDF } = window.jspdf;
+        const zip = new JSZip();
+        let pdfCount = 0;
+    
+        // Define letter size in pixels at 72 DPI
+        const letterWidthPx = 612;
+        const letterHeightPx = 792;
+    
+        // Generate PDFs in parallel
+        const pdfPromises = viaticos.value.map(async (viatico, index) => {
+            let templateId;
+            switch (viatico.tercero.tipoTercero) {
+                case 'CATEDRATICO':
+                    templateId = `pf1-${index}`;
+                    break;
+                case 'SERVIDOR':
+                    templateId = `pf2-${index}`;
+                    break;
+                case 'CONTRATISTA':
+                    templateId = `pf3-${index}`;
+                    break;
+                default:
+                    console.warn(`[generatePDF] Unknown tipoTercero for viático ${index}: ${viatico.tercero.tipoTercero}. Skipping.`);
+                    return null;
             }
-        
-            if (typeof window.html2canvas !== 'function') {
-                console.error('[generatePDF] html2canvas is not loaded.');
-                alert('Error: No se puede generar el PDF porque html2canvas no está disponible.');
-                return;
+    
+            const pageElement = document.getElementById(templateId);
+            if (!pageElement) {
+                console.warn(`[generatePDF] Page element ${templateId} not found for viático ${index}. Skipping.`);
+                return null;
             }
-        
-            if (typeof JSZip !== 'function') {
-                console.error('[generatePDF] JSZip is not loaded.');
-                alert('Error: No se puede generar el ZIP porque JSZip no está disponible.');
-                return;
-            }
-        
-            if (typeof saveAs !== 'function') {
-                console.error('[generatePDF] FileSaver.js is not loaded.');
-                alert('Error: No se puede guardar el ZIP porque FileSaver.js no está disponible.');
-                return;
-            }
-        
-            isGeneratingPDF.value = true;
-            console.log('[generatePDF] Started PDF generation, showing loading modal.');
-            console.log('[generatePDF] Viaticos:', viaticos.value.map(v => ({
-                index: v.eventId,
-                nombreTercero: v.tercero.nombreTercero,
-                tipoTercero: v.tercero.tipoTercero,
-                expectedElement: v.tercero.tipoTercero === 'CATEDRATICO' ? `pf1-${v.eventId}` : v.tercero.tipoTercero === 'SERVIDOR' ? `pf2-${v.eventId}` : `pf3-${v.eventId}`
-            })));
-        
-            const { jsPDF } = window.jspdf;
-            const zip = new JSZip();
-            let pdfCount = 0;
-        
-            // Define letter size in pixels at 72 DPI
-            const letterWidthPx = 612;
-            const letterHeightPx = 792;
-        
-            // Generate PDFs in parallel
-            const pdfPromises = viaticos.value.map(async (viatico, index) => {
-                let templateId;
-                switch (viatico.tercero.tipoTercero) {
-                    case 'CATEDRATICO':
-                        templateId = `pf1-${index}`;
-                        break;
-                    case 'SERVIDOR':
-                        templateId = `pf2-${index}`;
-                        break;
-                    case 'CONTRATISTA':
-                        templateId = `pf3-${index}`;
-                        break;
-                    default:
-                        console.warn(`[generatePDF] Unknown tipoTercero for viático ${index}: ${viatico.tercero.tipoTercero}. Skipping.`);
-                        return null;
-                    }
-        
-                    const pageElement = document.getElementById(templateId);
-                    if (!pageElement) {
-                        console.warn(`[generatePDF] Page element ${templateId} not found for viático ${index}. Skipping.`);
-                        return null;
-                    }
-        
-                    try {
-                        const doc = new jsPDF({
-                            orientation: 'portrait',
-                            unit: 'px',
-                            format: [letterWidthPx, letterHeightPx],
-                            compression: true
-                        });
-        
-                        const originalDisplay = pageElement.style.display;
-                        pageElement.style.display = 'block';
-        
-                        const elementWidth = pageElement.offsetWidth;
-                        const elementHeight = pageElement.offsetHeight;
-        
-                        const canvas = await window.html2canvas(pageElement, {
-                            scale: 2.5, // Increase scale for higher resolution
-                            useCORS: true,
-                            logging: true,
-                            width: elementWidth,
-                            height: elementHeight,
-                            windowWidth: elementWidth,
-                            windowHeight: elementHeight
-                        });
-        
-                        pageElement.style.display = originalDisplay;
-        
-                        const imgData = canvas.toDataURL('image/jpeg', 0.90); // Increase JPEG quality to 90% for better visuals
-                        const pdfWidth = doc.internal.pageSize.getWidth();
-                        const pdfHeight = doc.internal.pageSize.getHeight();
-        
-                        doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW'); // Use SLOW compression for better quality
-                        console.log(`[generatePDF] Generated PDF for viático ${index + 1}, template: ${templateId}.`);
-        
-                        const terceroName = viatico.tercero.nombreTercero.replace(/\s+/g, '_');
-                        const destinoCity = viatico.event.ciudadDestino.replace(/\s+/g, '_');
-                        const startDate = viatico.event.startDate.split('/').join('-');
-                        const paddedIndex = String(index + 1).padStart(2, '0');
-                        const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
-        
-                        const pdfBlob = doc.output('blob');
-                        console.log(`[generatePDF] PDF size for ${filename}: ${(pdfBlob.size / 1024).toFixed(2)} KB`);
-                        return { filename, pdfBlob };
-                    } catch (error) {
-                        console.error(`[generatePDF] Error generating PDF for viático ${index + 1}, template ${templateId}:`, error);
-                        return null;
-                    }
+    
+            try {
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [letterWidthPx, letterHeightPx],
+                    compression: true
                 });
-        
-                // Wait for all PDFs to be generated
-                const pdfResults = await Promise.all(pdfPromises);
-        
-                // Add valid PDFs to ZIP
-                pdfResults.forEach(result => {
-                    if (result) {
-                        zip.file(result.filename, result.pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
-                        pdfCount++;
-                        console.log(`[generatePDF] Added to ZIP: ${result.filename}, size: ${(result.pdfBlob.size / 1024).toFixed(2)} KB`);
-                    }
+    
+                const originalDisplay = pageElement.style.display;
+                pageElement.style.display = 'block';
+    
+                const elementWidth = pageElement.offsetWidth;
+                const elementHeight = pageElement.offsetHeight;
+    
+                const canvas = await window.html2canvas(pageElement, {
+                    scale: 2.5, // Increase scale for higher resolution
+                    useCORS: true,
+                    logging: true,
+                    width: elementWidth,
+                    height: elementHeight,
+                    windowWidth: elementWidth,
+                    windowHeight: elementHeight
                 });
-        
-                if (pdfCount > 0) {
-                    try {
-                        const zipBlob = await zip.generateAsync({
-                            type: 'blob',
-                            compression: 'DEFLATE',
-                            compressionOptions: { level: 6 }
-                        });
-                        saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
-                        console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
-                    } catch (error) {
-                        console.error('[generatePDF] Error generating ZIP file:', error);
-                        alert('Error al generar el archivo ZIP: ' + error.message);
-                    }
-                } else {
-                    console.warn('[generatePDF] No valid PDFs generated for ZIP.');
-                    alert('No se generaron PDFs válidos para incluir en el ZIP.');
-                }
-        
-                isGeneratingPDF.value = false;
-                console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
-            };
+    
+                pageElement.style.display = originalDisplay;
+    
+                const imgData = canvas.toDataURL('image/jpeg', 0.90); // Increase JPEG quality to 90% for better visuals
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = doc.internal.pageSize.getHeight();
+    
+                doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW'); // Use SLOW compression for better quality
+                console.log(`[generatePDF] Generated PDF for viático ${index + 1}, template: ${templateId}.`);
+    
+                const terceroName = viatico.tercero.nombreTercero.replace(/\s+/g, '_');
+                const destinoCity = viatico.event.ciudadDestino.replace(/\s+/g, '_');
+                const startDate = viatico.event.startDate.split('/').join('-');
+                const paddedIndex = String(index + 1).padStart(2, '0');
+                const filename = `${paddedIndex}_${terceroName}_${destinoCity}_${startDate}_${index + 1}.pdf`;
+    
+                const pdfBlob = doc.output('blob');
+                console.log(`[generatePDF] PDF size for ${filename}: ${(pdfBlob.size / 1024).toFixed(2)} KB`);
+                return { filename, pdfBlob };
+            } catch (error) {
+                console.error(`[generatePDF] Error generating PDF for viático ${index + 1}, template ${templateId}:`, error);
+                return null;
+            }
+        });
+    
+        // Wait for all PDFs to be generated
+        const pdfResults = await Promise.all(pdfPromises);
+    
+        // Add valid PDFs to ZIP
+        pdfResults.forEach(result => {
+            if (result) {
+                zip.file(result.filename, result.pdfBlob, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
+                pdfCount++;
+                console.log(`[generatePDF] Added to ZIP: ${result.filename}, size: ${(result.pdfBlob.size / 1024).toFixed(2)} KB`);
+            }
+        });
+    
+        if (pdfCount > 0) {
+            try {
+                const zipBlob = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+                saveAs(zipBlob, `comision_servicios_${new Date().toISOString().split('T')[0]}.zip`);
+                console.log('[generatePDF] Saved ZIP file with', pdfCount, 'PDFs, size:', (zipBlob.size / 1024 / 1024).toFixed(2), 'MB');
+            } catch (error) {
+                console.error('[generatePDF] Error generating ZIP file:', error);
+                alert('Error al generar el archivo ZIP: ' + error.message);
+            }
+        } else {
+            console.warn('[generatePDF] No valid PDFs generated for ZIP.');
+            alert('No se generaron PDFs válidos para incluir en el ZIP.');
+        }
+    
+        isGeneratingPDF.value = false;
+        console.log('[generatePDF] Completed PDF generation, hiding loading modal.');
+    };
         // ----------------------------------
         // End Component: Visor PDF Management
+        // ----------------------------------
+
+        // ----------------------------------
+        // Component: Test Events Management
+        // ----------------------------------
+        const addTestEvents = () => {
+            console.log('[addTestEvents] Adding test events...');
+            const testEvents = [
+                {
+                    id: 'test1',
+                    title: 'Juan Pérez',
+                    startDate: '2025-05-09T00:00:00',
+                    endDate: '2025-05-10T00:00:00',
+                    terceroId: '1',
+                    destino: '1',
+                    color: '#3b82f6',
+                    viatica: true,
+                    transporte: '20000',
+                    origen: '1'
+                },
+                {
+                    id: 'test2',
+                    title: 'Carlos López',
+                    startDate: '2025-05-16T00:00:00',
+                    endDate: '2025-05-17T00:00:00',
+                    terceroId: '3',
+                    destino: '2',
+                    color: '#3b82f6',
+                    viatica: true,
+                    transporte: '20000',
+                    origen: '2'
+                }
+            ];
+
+            // Clear existing events (optional, depending on test requirements)
+            // events.value = [];
+
+            // Add test events
+            testEvents.forEach(event => {
+                if (!events.value.some(e => e.id === event.id)) {
+                    events.value.push(event);
+                    console.log(`[addTestEvents] Added event: ${event.title} (ID: ${event.id})`);
+                } else {
+                    console.log(`[addTestEvents] Event with ID ${event.id} already exists, skipping.`);
+                }
+            });
+
+            // Save to localStorage and render events
+            localStorage.setItem('academicEvents', JSON.stringify(events.value));
+            renderEvents();
+            console.log('[addTestEvents] Test events added, total events:', events.value.length);
+        };
+        // ----------------------------------
+        // End Component: Test Events Management
         // ----------------------------------
 
         // ----------------------------------
         // Component: Lifecycle Hooks
         // ----------------------------------
         onMounted(async () => {
+            console.log('[onMounted] Initializing app...');
             await loadTerceros();
             await loadCities();
-            reinitializeCalendar();
+            console.log('[onMounted] Loaded:', {
+                terceros: terceros.value.length,
+                cities: cities.value.length
+            });
+
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'es',
+                initialView: currentView.value,
+                headerToolbar: false,
+                firstDay: 1,
+                dayHeaderFormat: { weekday: 'long' },
+                height: '100%',
+                contentHeight: '100%',
+                eventClick: (info) => {
+                    editEvent(info);
+                },
+                dateClick: function(info) {
+                    openModal(info.dateStr);
+                },
+                eventDisplay: 'block',
+                eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+                eventDidMount: function(info) {
+                    if (info.event.allDay && info.event.start && info.event.end) {
+                        const start = info.event.start;
+                        const end = info.event.end;
+                        const duration = (end - start) / (1000 * 60 * 60 * 24);
+                        if (duration > 1) {
+                            info.el.style.borderLeftWidth = '4px';
+                            info.el.style.borderLeftStyle = 'solid';
+                            info.el.style.borderLeftColor = darkenColor(info.event.backgroundColor, 20);
+                        }
+                    }
+                },
+                dayHeaderContent: function(arg) {
+                    const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
+                    return { html: `<div>${dayName}</div>` };
+                },
+                views: {
+                    dayGridMonth: {
+                        dayMaxEventRows: limitEvents.value ? 4 : false,
+                        dayMaxEvents: limitEvents.value ? 4 : false,
+                        fixedWeekCount: false,
+                        aspectRatio: 1.5
+                    },
+                    dayGridWeek: {
+                        type: 'dayGrid',
+                        duration: { weeks: 1 },
+                        dayCount: 7,
+                        dayMaxEventRows: false,
+                        dayMaxEvents: false,
+                        titleFormat: { year: 'numeric', month: 'long', day: 'numeric' },
+                        dayHeaderContent: function(arg) {
+                            const dayName = arg.text.charAt(0).toUpperCase() + arg.text.slice(1);
+                            const dayNumber = arg.date.getDate();
+                            return {
+                                html: `
+                                    <div class="flex flex-col items-center">
+                                        <span class="fc-day-name">${dayName}</span>
+                                        <span class="fc-day-number">${dayNumber}</span>
+                                    </div>
+                                `
+                            };
+                        }
+                    }
+                },
+                datesSet: function() {
+                    updateTitle();
+                }
+            });
+
+            calendarApi.value = calendar;
+            calendar.render();
+            renderEvents();
             updateButtonStates();
+            console.log('[onMounted] Calendar initialized.');
         });
 
         onUnmounted(() => {
+            console.log('[onUnmounted] Cleaning up...');
             if (calendarApi.value) {
                 calendarApi.value.destroy();
                 calendarApi.value = null;
+            }
+            if (timeline) {
+                timeline.destroy();
+                timeline = null;
             }
             if (flatpickrInstance) {
                 flatpickrInstance.destroy();
@@ -1890,111 +2089,97 @@ const app = createApp({
         // End Component: Lifecycle Hooks
         // ----------------------------------
 
+        const openPeriodoModal = () => { };
+        const toggleTimeline = () => { };
+
         // ----------------------------------
-        // Component: Exposed Methods and Variables
+        // Component: Exposed methods and properties
         // ----------------------------------
         return {
-            // State
             currentView,
-            calendarApi,
-            events,
+            setView,
+            navigate,
+            goToToday,
+            getTitle,
+            limitEvents,
+            toggleEventLimit,
             showModal,
             currentEvent,
+            form,
             error,
             dateRangePicker,
-            limitEvents,
-            form,
+            saveEvent,
+            closeModal,
+            deleteEvent,
+            handleTransporteInput,
+            handleRutaAdicionalInput,
+            handleDescriptionInput,
+            createViaticoObject,
+            viaticos,
             showProgrammingModal,
+            openProgrammingModal,
+            closeProgrammingModal,
             programmingDateRangePicker,
-            programmingRange,
             programmingEventsJson,
+            generateProgrammingJson,
             showTercerosModal,
+            openTercerosModal,
+            closeTercerosModal,
             terceros,
             searchQuery,
             showOptions,
-            currentTercero,
+            filteredTerceros,
+            filterTerceros,
+            selectTercero,
+            hideOptions,
             showTerceroForm,
+            openTerceroForm,
+            closeTerceroForm,
             terceroForm,
-            showPeriodoModal,
-            periodos,
-            currentPeriodo,
-            periodoForm,
-            showTimeline,
-            timelineContainer,
-            timelineModalState,
-            DEPENDENCIA,
-            viaticos,
-            isGeneratingPDF,
-            showVisorPDF,
-            disabledButtons,
-            viaticoStates, // CHANGE: Expose viaticoStates for modal select
+            currentTercero,
+            editTercero,
+            saveTercero,
+            deleteTercero,
             cities,
             origenQuery,
             destinoQuery,
             showOrigenOptions,
             showDestinoOptions,
-
-            // Methods
-            navigate,
-            setView,
-            goToToday,
-            toggleEventLimit,
-            openModal,
-            closeModal,
-            saveEvent,
-            deleteEvent,
-            editEvent,
-            computeViatico,
-            renderEvents,
-            updateButtonStates,
-            openTercerosModal,
-            closeTercerosModal,
-            openTerceroForm,
-            closeTerceroForm,
-            editTercero,
-            saveTercero,
-            deleteTercero,
-            filterTerceros,
-            selectTercero,
-            hideOptions,
-            filteredTerceros,
-            openProgrammingModal,
-            closeProgrammingModal,
-            generateProgrammingJson,
-            toggleVisorPDF,
-            generatePDF,
-            debugViaticos,
-            formatCurrency,
-            computeViaticoDetails,
-            handleTransporteInput,
-            handleRutaAdicionalInput,
-            handleDescriptionInput,
+            filteredOrigenCities,
+            filteredDestinoCities,
             filterOrigenCities,
             filterDestinoCities,
             selectOrigenCity,
             selectDestinoCity,
             hideOrigenOptions,
-            hideDestinoOptions,
-            filteredOrigenCities,
-            filteredDestinoCities,
-            updateViaticaBasedOnEstado // CHANGE: Expose new method
+            hideDestinoOptions,            
+            showVisorPDF,
+            toggleVisorPDF,
+            isGeneratingPDF,
+            generatePDF,
+            computeViatico,
+            computeViaticoForProgramming,
+            reinitializeCalendar,
+            disabledButtons,
+            debugViaticos,
+            openPeriodoModal, 
+            toggleTimeline,
+            showTimeline,
+            toggleTimeline,
+            REDONDEAR,
+            formatCurrency,
+            computeViaticoDetails,
+            addTestEvents
         };
         // ----------------------------------
-        // End Component: Exposed Methods and Variables
+        // End Component: Exposed methods and properties
         // ----------------------------------
     }
 });
-
-// ----------------------------------
-// Component: Mount Vue App
-// ----------------------------------
 app.mount('#app');
-// ----------------------------------
-// End Component: Mount Vue App
-// ----------------------------------
 </script>
 <!-- ---------------------------------- -->
-<!-- End Component: JavaScript and Vue app initialization -->
+<!-- End Component: script -->
 <!-- ---------------------------------- -->
 </body>
 </html>
