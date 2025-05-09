@@ -24,7 +24,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v7</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v8</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -929,11 +929,13 @@ const saveCity = () => {
         alert('Todos los campos son requeridos.');
         return;
     }
+    // Convertir transporteCiudad a un número entero sin formato para guardar
+    const transporteCiudadValue = parseInt(cityForm.value.transporteCiudad.replace(/[^0-9]/g, '')) || 0;
     if (currentCity.value) {
         const index = cities.value.findIndex(c => c.id === currentCity.value.id);
-        if (index !== -1) cities.value[index] = { ...cityForm.value };
+        if (index !== -1) cities.value[index] = { ...cityForm.value, transporteCiudad: transporteCiudadValue };
     } else {
-        const newCity = { ...cityForm.value, id: Date.now().toString() };
+        const newCity = { ...cityForm.value, id: Date.now().toString(), transporteCiudad: transporteCiudadValue };
         cities.value.push(newCity);
     }
     closeCityForm();
@@ -952,12 +954,9 @@ const handleCityNameInput = (event) => {
 };
 
 const handleTransporteCiudadInput = (event) => {
-    const input = event.target.value.replace(/,/g, '');
-    if (/^\d*$/.test(input)) {
-        cityForm.value.transporteCiudad = formatCurrency(parseFloat(input));
-    } else {
-        cityForm.value.transporteCiudad = formatCurrency(parseFloat(input.replace(/\D/g, '')));
-    }
+    let input = event.target.value.replace(/[^0-9]/g, ''); // Solo permitir números
+    const numericValue = parseInt(input) || 0; // Convertir a número entero, 0 si no es válido
+    cityForm.value.transporteCiudad = formatCurrency(numericValue); // Formatear con separación de miles
 };
 <!-- ---------------------------------- -->
 <!-- End Component: Cities Management (Modified) -->
@@ -1397,7 +1396,8 @@ const updateViaticaOnEstadoChange = () => {
 const updateTransporteFromDestino = () => {
     const selectedCity = cities.value.find(city => city.id === form.value.destino);
     if (selectedCity && selectedCity.transporteCiudad) {
-        form.value.transporte = formatCurrency(parseFloat(selectedCity.transporteCiudad));
+        const numericValue = parseInt(selectedCity.transporteCiudad) || 0; // Asegurar que sea un número entero
+        form.value.transporte = formatCurrency(numericValue); // Formatear con separación de miles
     } else {
         form.value.transporte = '';
     }
@@ -1596,12 +1596,9 @@ const formatTransporte = (value) => {
 };
 
 const handleTransporteInput = (event) => {
-    const input = event.target.value.replace(/,/g, '');
-    if (/^\d*$/.test(input)) {
-	form.value.transporte = formatTransporte(input);
-    } else {
-	form.value.transporte = formatTransporte(input.replace(/\D/g, ''));
-    }
+    let input = event.target.value.replace(/[^0-9]/g, ''); // Solo permitir números
+    const numericValue = parseInt(input) || 0; // Convertir a número entero, 0 si no es válido
+    form.value.transporte = formatCurrency(numericValue); // Formatear con separación de miles
 };
 
 const handleRutaAdicionalInput = (event) => {
