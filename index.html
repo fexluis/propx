@@ -24,7 +24,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v5</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v6</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -2352,6 +2352,20 @@ return {
     selectDestinoCity,
     hideOrigenOptions,
     hideDestinoOptions,
+    showCitiesModal, // Añadido
+    openCitiesModal, // Añadido
+    closeCitiesModal, // Añadido
+    showCityForm, // Añadido
+    openCityForm, // Añadido
+    closeCityForm, // Añadido
+    currentCity, // Añadido
+    cityForm, // Añadido
+    editCity, // Añadido
+    saveCity, // Añadido
+    deleteCity, // Añadido
+    handleCityNameInput, // Añadido
+    handleDepartamentoInput, // Añadido
+    handleTransporteCiudadInput, // Añadido
     showVisorPDF,
     toggleVisorPDF,
     isGeneratingPDF,
