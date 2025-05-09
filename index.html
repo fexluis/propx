@@ -24,7 +24,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9a</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9b</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -920,6 +920,8 @@ const closeCityForm = () => {
 const editCity = (city) => {
     currentCity.value = city;
     cityForm.value = JSON.parse(JSON.stringify(city));
+    // Asegurar que transporteCiudad sea una cadena formateada al cargar para edición
+    cityForm.value.transporteCiudad = formatCurrencyModal(cityForm.value.transporteCiudad.toString());
     showCityForm.value = true;
 };
 
@@ -929,7 +931,9 @@ const saveCity = () => {
         return;
     }
     // Convertir transporteCiudad a un número entero sin formato para guardar
-    const transporteCiudadValue = parseInt(cityForm.value.transporteCiudad.replace(/\./g, '')) || 0;
+    // Asegurar que sea una cadena antes de usar replace
+    const transporteCiudadStr = typeof cityForm.value.transporteCiudad === 'string' ? cityForm.value.transporteCiudad : cityForm.value.transporteCiudad.toString();
+    const transporteCiudadValue = parseInt(transporteCiudadStr.replace(/\./g, '')) || 0;
     if (currentCity.value) {
         const index = cities.value.findIndex(c => c.id === currentCity.value.id);
         if (index !== -1) cities.value[index] = { ...cityForm.value, transporteCiudad: transporteCiudadValue };
