@@ -24,7 +24,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v8</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -930,7 +930,7 @@ const saveCity = () => {
         return;
     }
     // Convertir transporteCiudad a un número entero sin formato para guardar
-    const transporteCiudadValue = parseInt(cityForm.value.transporteCiudad.replace(/[^0-9]/g, '')) || 0;
+    const transporteCiudadValue = parseInt(cityForm.value.transporteCiudad.replace(/\./g, '')) || 0;
     if (currentCity.value) {
         const index = cities.value.findIndex(c => c.id === currentCity.value.id);
         if (index !== -1) cities.value[index] = { ...cityForm.value, transporteCiudad: transporteCiudadValue };
@@ -954,9 +954,12 @@ const handleCityNameInput = (event) => {
 };
 
 const handleTransporteCiudadInput = (event) => {
-    let input = event.target.value.replace(/[^0-9]/g, ''); // Solo permitir números
-    const numericValue = parseInt(input) || 0; // Convertir a número entero, 0 si no es válido
-    cityForm.value.transporteCiudad = formatCurrency(numericValue); // Formatear con separación de miles
+    const input = event.target.value.replace(/\./g, '');
+    if (/^\d*$/.test(input)) {
+        cityForm.value.transporteCiudad = formatCurrencyModal(input);
+    } else {
+        cityForm.value.transporteCiudad = formatCurrencyModal(input.replace(/\D/g, ''));
+    }
 };
 <!-- ---------------------------------- -->
 <!-- End Component: Cities Management (Modified) -->
@@ -1006,6 +1009,13 @@ const formatCurrency = (value) => {
     const [integerPart, decimalPart = '00'] = rounded.toFixed(2).split('.');
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Add dots for thousands
     return `${formattedInteger},${decimalPart.padStart(2, '0')}`; // Use comma for decimals
+};
+
+// Nueva función para showModal y showCityForm: formatea solo con separación de miles (ej. 10.000)
+const formatCurrencyModal = (value) => {
+    const digitsOnly = value.toString().replace(/\D/g, ''); // Asegurar que solo haya dígitos
+    if (!digitsOnly) return '0'; // Si no hay dígitos, retornar '0'
+    return parseInt(digitsOnly).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Formatear con separación de miles
 };
 
 // Compute viático details for each viatico object (used in template)
@@ -1396,8 +1406,7 @@ const updateViaticaOnEstadoChange = () => {
 const updateTransporteFromDestino = () => {
     const selectedCity = cities.value.find(city => city.id === form.value.destino);
     if (selectedCity && selectedCity.transporteCiudad) {
-        const numericValue = parseInt(selectedCity.transporteCiudad) || 0; // Asegurar que sea un número entero
-        form.value.transporte = formatCurrency(numericValue); // Formatear con separación de miles
+        form.value.transporte = formatCurrencyModal(selectedCity.transporteCiudad.toString());
     } else {
         form.value.transporte = '';
     }
@@ -1596,9 +1605,12 @@ const formatTransporte = (value) => {
 };
 
 const handleTransporteInput = (event) => {
-    let input = event.target.value.replace(/[^0-9]/g, ''); // Solo permitir números
-    const numericValue = parseInt(input) || 0; // Convertir a número entero, 0 si no es válido
-    form.value.transporte = formatCurrency(numericValue); // Formatear con separación de miles
+    const input = event.target.value.replace(/\./g, '');
+    if (/^\d*$/.test(input)) {
+        form.value.transporte = formatCurrencyModal(input);
+    } else {
+        form.value.transporte = formatCurrencyModal(input.replace(/\D/g, ''));
+    }
 };
 
 const handleRutaAdicionalInput = (event) => {
