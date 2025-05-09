@@ -79,7 +79,6 @@
                     </button>
                     <button @click="openCitiesModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.cities">
                         <i class="fas fa-city mr-2"></i>
-                        <span>Ciudades</span>
                     </button>
                     <button @click="openProgrammingModal" class="px-3 py-1 rounded-md flex items-center justify-center hover:bg-blue-700" :disabled="disabledButtons.programming">
                         <i class="fas fa-list"></i>
@@ -1553,6 +1552,9 @@ const createViaticoObject = (eventData, terceros, cities) => {
         return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
     };
 
+    // Sanitizar el valor de transporte para eliminar el formato de separación de miles
+    const transporteValue = eventData.transporte ? eventData.transporte.replace(/\./g, '') : '0';
+
     // Construct partial viatico object for computeViaticoDetails
     const viatico = {
         dependencia: DEPENDENCIA,
@@ -1575,7 +1577,7 @@ const createViaticoObject = (eventData, terceros, cities) => {
             startDate: formatDate(eventData.startDate),
             endDate: formatDate(adjustedEndDate),
             description: eventData.description || '',
-            transporte: eventData.transporte || '0',
+            transporte: transporteValue, // Usar el valor sanitizado sin formato
             itinerario: eventData.rutaAdicional || '',
             ciudadDestino: destinoCity.nombreCiudad,
             ciudadDestinoDepartamento: destinoCity.departamento
