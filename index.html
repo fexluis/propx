@@ -105,7 +105,7 @@
         <!-- ---------------------------------- -->
 
 <!-- ---------------------------------- -->
-<!-- Component: Cities Modal (Added) -->
+<!-- Component: Cities Modal (Modified) -->
 <!-- ---------------------------------- -->
 <div v-if="showCitiesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 modal">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4">
@@ -165,23 +165,26 @@
                 </div>
                 <div>
                     <label for="departamento" class="block text-sm font-medium text-gray-700">Departamento *</label>
-                    <input
+                    <select
                         id="departamento"
                         v-model="cityForm.departamento"
-                        type="text"
                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                        @input="handleDepartamentoInput"
                     >
+                        <option value="VALLE">VALLE</option>
+                        <option value="CALDAS">CALDAS</option>
+                        <option value="CAUCA">CAUCA</option>
+                    </select>
                 </div>
                 <div>
                     <label for="categoria" class="block text-sm font-medium text-gray-700">Categoría *</label>
-                    <input
+                    <select
                         id="categoria"
                         v-model.number="cityForm.categoria"
-                        type="number"
-                        min="1"
                         class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
                 </div>
                 <div>
                     <label for="transporteCiudad" class="block text-sm font-medium text-gray-700">Transporte *</label>
@@ -206,7 +209,7 @@
     </div>
 </div>
 <!-- ---------------------------------- -->
-<!-- End Component: Cities Modal (Added) -->
+<!-- End Component: Cities Modal (Modified) -->
 <!-- ---------------------------------- -->
 	    
         <!-- ---------------------------------- -->
@@ -905,9 +908,9 @@ const deleteTercero = (id) => {
 // End Component: Terceros Management
 // ----------------------------------
 
-// ----------------------------------
-// Component: Cities Management
-// ----------------------------------
+<!-- ---------------------------------- -->
+<!-- Component: Cities Management (Modified) -->
+<!-- ---------------------------------- -->
 const loadCities = async () => {
     cities.value = await CityDataSource();
 };
@@ -979,8 +982,8 @@ const openCityForm = () => {
     cityForm.value = {
         id: '',
         nombreCiudad: '',
-        departamento: '',
-        categoria: 1,
+        departamento: 'VALLE', // Valor por defecto
+        categoria: 1, // Valor por defecto
         transporteCiudad: ''
     };
 };
@@ -1023,12 +1026,6 @@ const handleCityNameInput = (event) => {
     cityForm.value.nombreCiudad = value.toUpperCase();
 };
 
-const handleDepartamentoInput = (event) => {
-    let value = event.target.value;
-    value = value.replace(/[^a-zA-Z\s]/g, '');
-    cityForm.value.departamento = value.toUpperCase();
-};
-
 const handleTransporteCiudadInput = (event) => {
     const input = event.target.value.replace(/,/g, '');
     if (/^\d*$/.test(input)) {
@@ -1037,9 +1034,9 @@ const handleTransporteCiudadInput = (event) => {
         cityForm.value.transporteCiudad = formatCurrency(parseFloat(input.replace(/\D/g, '')));
     }
 };
-// ----------------------------------
-// End Component: Cities Management
-// ----------------------------------
+<!-- ---------------------------------- -->
+<!-- End Component: Cities Management (Modified) -->
+<!-- ---------------------------------- -->
 
 // ----------------------------------
 // Component: Viáticos Calculation Functions
@@ -2352,20 +2349,19 @@ return {
     selectDestinoCity,
     hideOrigenOptions,
     hideDestinoOptions,
-    showCitiesModal, // Añadido
-    openCitiesModal, // Añadido
-    closeCitiesModal, // Añadido
-    showCityForm, // Añadido
-    openCityForm, // Añadido
-    closeCityForm, // Añadido
-    currentCity, // Añadido
-    cityForm, // Añadido
-    editCity, // Añadido
-    saveCity, // Añadido
-    deleteCity, // Añadido
-    handleCityNameInput, // Añadido
-    handleDepartamentoInput, // Añadido
-    handleTransporteCiudadInput, // Añadido
+    showCitiesModal,
+    openCitiesModal,
+    closeCitiesModal,
+    showCityForm,
+    openCityForm,
+    closeCityForm,
+    currentCity,
+    cityForm,
+    editCity,
+    saveCity,
+    deleteCity,
+    handleCityNameInput,
+    handleTransporteCiudadInput, // Se eliminó handleDepartamentoInput
     showVisorPDF,
     toggleVisorPDF,
     isGeneratingPDF,
