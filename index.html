@@ -1556,20 +1556,8 @@ const createViaticoObject = (eventData, terceros, cities) => {
     // Calculate total days (inclusive of start and adjusted end dates)
     const totalDays = Math.floor((adjustedEndDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
-    // Apply logic for duracion based on totalDays
-    let duracion;
-    if (totalDays === 1) {
-        duracion = 0.5;
-    } else if (totalDays === 2) {
-        duracion = 1.5;
-    } else if (totalDays === 3) {
-        duracion = 2.5;
-    } else if (totalDays >= 4) {
-        duracion = totalDays - 0.5; // For 4 days: 3.5, etc.
-    } else {
-        // Fallback for unexpected cases
-        duracion = totalDays > 1 ? totalDays - 0.5 : totalDays / 2;
-    }
+    // Calculate duracion
+    const duracion = totalDays - 0.5;
 
     // Debug log for startDate, endDate, totalDays, and duracion
     console.log('[createViaticoObject] Viático Debug:', {
@@ -1589,10 +1577,16 @@ const createViaticoObject = (eventData, terceros, cities) => {
     // Sanitizar el valor de transporte para eliminar el formato de separación de miles
     const transporteValue = eventData.transporte ? eventData.transporte.replace(/\./g, '') : '0';
 
+    // Construct itinerario
+    const ciudadOrigen = cities.find(c => c.id === eventData.origen)?.nombreCiudad || '';
+    const ciudadDestino = destinoCity.nombreCiudad;
+    const rutaAdicional = eventData.rutaAdicional || '';
+    const itinerario = rutaAdicional ? `${ciudadOrigen}-${ciudadDestino}-${rutaAdicional}-${ciudadOrigen}` : `${ciudadOrigen}-${ciudadDestino}-${ciudadOrigen}`;
+
     // Construct partial viatico object for computeViaticoDetails
     const viatico = {
         dependencia: DEPENDENCIA,
-        currentDate: formatDate(new Date('2025-05-04')),
+        currentDate: formatDate(new Date()), // Updated to use current date
         duracion: duracion,
         tercero: {
             nombreTercero: tercero.nombreTercero,
@@ -1612,8 +1606,10 @@ const createViaticoObject = (eventData, terceros, cities) => {
             endDate: formatDate(adjustedEndDate),
             description: eventData.description || '',
             transporte: transporteValue, // Usar el valor sanitizado sin formato
-            itinerario: eventData.rutaAdicional || '',
-            ciudadDestino: destinoCity.nombreCiudad,
+            itinerario: itinerario,
+            ciudadOrigen: ciudadOrigen,
+            ciudadOrigenDepartamento: cities.find(c => c.id === eventData.origen)?.departamento || '',
+            ciudadDestino: ciudadDestino,
             ciudadDestinoDepartamento: destinoCity.departamento
         },
         eventId: eventData.id
