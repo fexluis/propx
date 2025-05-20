@@ -18,7 +18,7 @@
 .viatico-box {
     padding: 3px 5px 3px 3px;
     text-align: right;
-    font-size: 6.7px;
+    font-size: 7px;
     font-family: 'ff3';
     color: rgb(32, 56, 100);    
 }
@@ -407,8 +407,8 @@
 		        <div class="c x4 y37 w3 h17"><div class="t m0 x24 h3 y38 ff1 fs0 fc2 sc2 ls0 ws0">Total</div></div>
 		        <div class="c x0 y39 w14 h17"><div class="t m0 x25 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">Pernoctados</div></div>
 		        <div class="c x11 y39 wc h17"><div class="t m0 x21 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaPernoctados }}</div></div>
-		        <div class="c x9 y39 w7 h17">
-		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
+		        <div class="c x9 y39 w7 h17 viatico-box">
+		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ </div>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}
 		        </div>
 		        <div class="c x4 y39 w3 h17 viatico-box">
 		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ </div>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}
