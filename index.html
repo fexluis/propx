@@ -402,7 +402,7 @@
 		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
 		        </div>
 		        <div class="c x4 y39 w3 h17">
-		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
+		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span :class="formatCurrency(computeViaticoDetails(viatico).viaticoDiario) === '0,00' ? '_ _7' : '_ _1'"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
 		        </div>
 		        <div class="c x0 y3b w14 h17"><div class="t m0 x26 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
 		        <div class="c x11 y3b wc h17"><div class="t m0 x21 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaNoPernoctados }}</div></div>
@@ -441,7 +441,7 @@
                     <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
                 </div>
                 <div class="c x31 ya2 w1b h3c">
-                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
+                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span :class="formatCurrency(computeViaticoDetails(viatico).viaticoDiario) === '0,00' ? '_ _7' : '_ _1'"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
                 </div>
                 <div class="c x0 ya4 w2b h3c"><div class="t m0 x25 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
                 <div class="c x36 ya4 w24 h3c"><div class="t m0 x3d h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaNoPernoctados }}</div></div>
@@ -480,7 +480,7 @@
                     <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
                 </div>
                 <div class="c x31 ya2 w1b h3c">
-                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
+                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span :class="formatCurrency(computeViaticoDetails(viatico).viaticoDiario) === '0,00' ? '_ _7' : '_ _1'"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
                 </div>
                 <div class="c x0 ya4 w2b h3c"><div class="t m0 x25 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
                 <div class="c x36 ya4 w24 h3c"><div class="t m0 x3d h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaNoPernoctados }}</div></div>
