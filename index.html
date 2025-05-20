@@ -16,14 +16,11 @@
     <style>
 /* Estilo para la caja */
 .viatico-box {
-    background-color: #f9f9f9; /* Fondo gris claro */
-    padding: 5px; /* Espaciado interno */
-    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */    
-}
-
-/* Alineación del texto a la derecha */
-.text-right {
+    padding: 3px 5px 3px 3px;
     text-align: right;
+    font-size: 6.7px;
+    font-family: 'ff3';
+    color: rgb(32, 56, 100);    
 }
     </style>
 </head>
@@ -36,7 +33,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9e</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9f</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -414,19 +411,19 @@
 		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
 		        </div>
 		        <div class="c x4 y39 w3 h17 viatico-box">
-		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ <span :class="formatCurrency(computeViaticoDetails(viatico).viaticoDiario) === '0,00' ? '_ _7' : '_ _1'"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
+		            <div class="t m0 x5 hc y3a ff3 fs0 fc2 sc3 ls0 ws0">$ </div>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}
 		        </div>
 		        <div class="c x0 y3b w14 h17"><div class="t m0 x26 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
 		        <div class="c x11 y3b wc h17"><div class="t m0 x21 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaNoPernoctados }}</div></div>
 		        <div class="c x9 y3b w7 h17">
 		            <div class="t m0 x5 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(REDONDEAR(computeViaticoDetails(viatico).viaticoValorDiario / 2, 0)) }}</div>
 		        </div>
-		        <div class="c x4 y3b w3 h17">
-		            <div class="t m0 x5 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiarioMedio) }}</div>
+		        <div class="c x4 y3b w3 h17 viatico-box">
+		            <div class="t m0 x5 hc y3c ff3 fs0 fc2 sc3 ls0 ws0">$ </div>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiarioMedio) }}
 		        </div>
 		        <div class="c x0 y3d w15 h17"><div class="t m0 x27 h3 y3e ff1 fs0 fc2 sc2 ls0 ws0">Total Viáticos o auxilio económico de desplazamiento</div></div>
-		        <div class="c x4 y3d w3 h17">
-		            <div class="t m0 x5 h3 y3e ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotal) }}</div>
+		        <div class="c x4 y3d w3 h17 viatico-box">
+		            <div class="t m0 x5 h3 y3e ff1 fs0 fc2 sc2 ls0 ws0">$ </div>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotal) }}
 		        </div>
                 <!-- ... End Rest of pf1 template content ... -->
             </div>
