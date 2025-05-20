@@ -24,7 +24,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9b</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Académico main-5v9c</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -477,22 +477,22 @@
                 <div class="c x0 ya2 w2b h3c"><div class="t m0 x3b h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">Pernoctados</div></div>
                 <div class="c x36 ya2 w24 h3c"><div class="t m0 x3d h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaPernoctados }}</div></div>
                 <div class="c x33 ya2 w1f h3c">
-                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _6"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
+                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoValorDiario) }}</div>
                 </div>
                 <div class="c x31 ya2 w1b h3c">
-                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _8"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
+                    <div class="t m0 x5 h2e ya3 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiario) }}</div>
                 </div>
                 <div class="c x0 ya4 w2b h3c"><div class="t m0 x25 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">No Pernoctados</div></div>
                 <div class="c x36 ya4 w24 h3c"><div class="t m0 x3d h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">{{ computeViaticoDetails(viatico).viaticoDiaNoPernoctados }}</div></div>
                 <div class="c x33 ya4 w1f h3c">
-                    <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _6"> </span>{{ formatCurrency(REDONDEAR(computeViaticoDetails(viatico).viaticoValorDiario / 2, 0)) }}</div>
+                    <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _0"> </span>{{ formatCurrency(REDONDEAR(computeViaticoDetails(viatico).viaticoValorDiario / 2, 0)) }}</div>
                 </div>
                 <div class="c x31 ya4 w1b h3c">
-                    <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _8"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiarioMedio) }}</div>
+                    <div class="t m0 x5 h2e ya5 ff3 fs4 fc2 sc3 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoDiarioMedio) }}</div>
                 </div>
                 <div class="c x0 ya6 w2c h3c"><div class="t m0 x41 h26 ya7 ff1 fs4 fc2 sc2 ls0 ws0">Total Viáticos</div></div>
                 <div class="c x31 ya6 w1b h3c">
-                    <div class="t m0 x5 h26 ya7 ff1 fs4 fc2 sc2 ls0 ws0">$ <span class="_ _8"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotal) }}</div>
+                    <div class="t m0 x5 h26 ya7 ff1 fs4 fc2 sc2 ls0 ws0">$ <span class="_ _1"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotal) }}</div>
                 </div>
                 <div class="c x0 yc7 w2c h42"><div class="t m0 x5 h43 yce ff3 fs8 fc2 sc3 ls0 ws0">Aprobó: Yeimi Viviana Agudo, Directora Territorial</div></div>
             </div>
