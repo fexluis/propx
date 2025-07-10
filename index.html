@@ -33,7 +33,7 @@
     <div class="px-4 py-3">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0">
             <div class="flex items-center justify-between">
-                <h1 class="text-xl md:text-2xl font-bold">Calendario Viáticos 6.1</h1>
+                <h1 class="text-xl md:text-2xl font-bold">Calendario Viáticos 6.2</h1>
                 <div class="md:hidden">
                     <button @click="setView('dayGridMonth')" :class="{'bg-blue-700': currentView === 'dayGridMonth'}" class="p-2 rounded-md">
                         <i class="fas fa-calendar-alt"></i>
@@ -510,14 +510,14 @@
 		</div>
 		<div class="c x0 y47 w14 h18"><div class="t m0 x16 h3 y48 ff1 fs0 fc2 sc2 ls0 ws0">Transporte y desplazamiento por vía terrestre, marítimo, fluvial y/o ferroviario</div></div>
 		<div class="c x11 y47 w16 h18 viatico-box">
-		    <div class="t m0 x5 h3 y48 ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _3"> </span>{{ formatCurrency(viatico?.event?.transporte || '') }}</div>
+		    <div class="t m0 x5 h3 y48 ff1 fs0 fc2 sc2 ls0 ws0">$ </div>{{ formatCurrency(viatico?.event?.transporte || '') }}
 		</div>
 		<div class="c x0 y49 w14 h18">
 		    <div class="t m0 x1c h3 y4a ff1 fs0 fc2 sc2 ls0 ws0">TOTAL GASTOS DE TRANSPORTE Y/O AUXILIOS ECONÓMICOS DE</div>
 		    <div class="t m0 x1f h3 y4b ff1 fs0 fc2 sc2 ls0 ws0">DESPLAZAMIENTO</div>
 		</div>
 		<div class="c x11 y49 w16 h18 viatico-box">
-		    <div class="t m0 x5 h3 y4c ff1 fs0 fc2 sc2 ls0 ws0">$ <span class="_ _4"> </span>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotalMasTransporte) }}</div>
+		    <div class="t m0 x5 h3 y4c ff1 fs0 fc2 sc2 ls0 ws0">$ </div>{{ formatCurrency(computeViaticoDetails(viatico).viaticoTotalMasTransporte) }}
 		</div>
 		<div class="c x0 y4d w4 h19"><div class="t m0 x5 h3 y4e ff1 fs0 fc2 sc2 ls0 ws0">5. INFORMACIÓN FINANCIERA DE LA COMISIÓN DE SERVICIOS O SALIDA DE CAMPO</div></div>
 		<div class="c x0 y4f w4 h1a">
@@ -1265,7 +1265,7 @@ const computeViaticoDetails = (viatico) => {
 
     // Calculate viaticoTotal = viaticoDiario + viaticoDiarioMedio
     const viaticoTotal = viaticoDiario + viaticoDiarioMedio;
-    const viaticoTotalMasTransporte = viaticoTotal + viatico.event.transporte;
+    const viaticoTotalMasTransporte = viaticoTotal + parseInt(viatico.event.transporte);
 
     return {
         viaticoDiaPernoctados,
